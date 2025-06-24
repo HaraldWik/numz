@@ -1,0 +1,15 @@
+.{
+    .name = .z3dm,
+    .version = "0.0.0",
+    .fingerprint = 0x3179776b0e3d9c63,
+    .minimum_zig_version = "0.15.0-dev.631+9a3540d61",
+    .dependencies = .{},
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+        "README.md",
+    },
+}
