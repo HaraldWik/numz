@@ -162,7 +162,7 @@ pub fn Mat4(T: type) type {
             var m = Self.identity(1);
 
             var z_axis = Vec3(f32).new(target.d[0] - eye.d[0], target.d[1] - eye.d[1], target.d[2] - eye.d[2]);
-            const z_len_sq = z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2];
+            const z_len_sq = z_axis.d[0] * z_axis.d[0] + z_axis.d[1] * z_axis.d[1] + z_axis.d[2] * z_axis.d[2];
             const z_len = math.sqrt(z_len_sq);
             if (z_len == 0.0) return Self.identity(1);
             z_axis.d[0] /= z_len;
