@@ -20,15 +20,15 @@ pub fn Vec2(T: type) type {
         }
 
         pub inline fn toArray(v: Self) [2]T {
-            return @as([2]T, v);
+            return @as([2]T, v.d);
         }
 
         pub inline fn fromArray(v: [2]T) Self {
-            return .new(v[0], v[1]);
+            return .new(v.d[0], v.d[1]);
         }
 
         pub inline fn scale(v: Self, s: T) Self {
-            return .new(v[0] * s, v[1] * s);
+            return .new(v.d[0] * s, v.d[1] * s);
         }
 
         // zig fmt: off
@@ -36,18 +36,18 @@ pub fn Vec2(T: type) type {
         pub inline fn xyzw(v: Self) Vec4(T) { return .new(v.d[1], v.d[2], 0, 0); }
         // zig fmt: on
 
-        pub inline fn dot(self: Self, other: Self) T {
-            return (self.d * other.d)[0] + (self.d * other.d)[1];
+        pub inline fn dot(v1: Self, v2: Self) T {
+            return (v1.d * v2.d)[0] + (v1.d * v2.d)[1];
         }
 
-        pub inline fn lengthSq(self: Self) T {
-            return self.dot(self);
+        pub inline fn lengthSq(v: Self) T {
+            return v.dot(v);
         }
 
-        pub inline fn length(self: Self) T {
+        pub inline fn length(v: Self) T {
             if (@typeInfo(T) != .float) @panic("length() is only supported for floating-point vector types");
 
-            return math.sqrt(self.lengthSq());
+            return math.sqrt(v.lengthSq());
         }
     };
 }
@@ -71,15 +71,15 @@ pub fn Vec3(T: type) type {
         }
 
         pub inline fn toArray(v: Self) [3]T {
-            return @as([3]T, v);
+            return @as([3]T, v.d);
         }
 
         pub inline fn fromArray(v: [3]T) Self {
-            return .new(v[0], v[1], v[2]);
+            return .new(v.d[0], v.d[1], v.d[2]);
         }
 
         pub inline fn scale(v: Self, s: T) Self {
-            return .new(v[0] * s, v[1] * s, v[2] * s);
+            return .new(v.d[0] * s, v.d[1] * s, v.d[2] * s);
         }
 
         // zig fmt: off
@@ -90,34 +90,34 @@ pub fn Vec3(T: type) type {
         pub inline fn xyzw(v: Self) Vec4(T) { return .new(v.d[0], v.d[2], 0, 0); }
         // zig fmt: on
 
-        pub inline fn dot(self: Self, other: Self) T {
-            return (self.d * other.d)[0] + (self.d * other.d)[1];
+        pub inline fn dot(v1: Self, v2: Self) T {
+            return (v1.d * v2.d)[0] + (v1.d * v2.d)[1];
         }
 
-        pub inline fn cross(self: Self, other: Self) Self {
+        pub inline fn cross(v1: Self, v2: Self) Self {
             return .new(
-                self.d[1] * other.d[2] - self.d[2] * other.d[1],
-                self.d[2] * other.d[0] - self.d[0] * other.d[2],
-                self.d[0] * other.d[1] - self.d[1] * other.d[0],
+                v1.d[1] * v2.d[2] - v1.d[2] * v2.d[1],
+                v1.d[2] * v2.d[0] - v1.d[0] * v2.d[2],
+                v1.d[0] * v2.d[1] - v1.d[1] * v2.d[0],
             );
         }
 
-        pub inline fn lengthSq(self: Self) T {
-            return self.dot(self);
+        pub inline fn lengthSq(v: Self) T {
+            return v.dot(v);
         }
 
-        pub inline fn length(self: Self) T {
+        pub inline fn length(v: Self) T {
             if (@typeInfo(T) != .float) @panic("length() is only supported for floating-point vector types");
 
-            return math.sqrt(self.lengthSq());
+            return math.sqrt(v.lengthSq());
         }
 
-        pub inline fn normalize(self: Self) Self {
+        pub inline fn normalize(v: Self) Self {
             if (@typeInfo(T) != .float) @panic("normalize() is only supported for floating-point vector types");
 
-            const len = self.length();
-            if (len == 0) return self;
-            return .{ .d = self.d / @as(@Vector(3, T), @splat(len)) };
+            const len = v.length();
+            if (len == 0) return v;
+            return .{ .d = v.d / @as(@Vector(3, T), @splat(len)) };
         }
     };
 }
@@ -141,19 +141,15 @@ pub fn Vec4(T: type) type {
         }
 
         pub inline fn toArray(v: Self) [4]T {
-            return @as([4]T, v);
+            return @as([4]T, v.d);
         }
 
         pub inline fn fromArray(v: [4]T) Self {
-            return .new(v[0], v[1], v[2], v[
-                3
-            ]);
+            return .new(v.d[0], v.d[1], v.d[2], v.d[3]);
         }
 
         pub inline fn scale(v: Self, s: T) Self {
-            return .new(v[0] * s, v[1] * s, v[2] * s, v[
-                3
-            ] * s);
+            return .new(v.d[0] * s, v.d[1] * s, v.d[2] * s, v.d[3] * s);
         }
 
         // zig fmt: off
@@ -176,28 +172,28 @@ pub fn Vec4(T: type) type {
         ]); }
         // zig fmt: on
 
-        pub inline fn dot(self: Self, other: Self) T {
-            return (self.d * other.d)[0] + (self.d * other.d)[1] + (self.d * other.d)[2] + (self.d * other.d)[
+        pub inline fn dot(v1: Self, v2: Self) T {
+            return (v1.d * v2.d)[0] + (v1.d * v2.d)[1] + (v1.d * v2.d)[2] + (v1.d * v2.d)[
                 3
             ];
         }
 
-        pub inline fn lengthSq(self: Self) T {
-            return self.dot(self);
+        pub inline fn lengthSq(v: Self) T {
+            return v.dot(v);
         }
 
-        pub inline fn length(self: Self) T {
+        pub inline fn length(v: Self) T {
             if (@typeInfo(T) != .float) @panic("length() is only supported for floating-point vector types");
 
-            return math.sqrt(self.lengthSq());
+            return math.sqrt(v.lengthSq());
         }
 
-        pub inline fn normalize(self: Self) Self {
+        pub inline fn normalize(v: Self) Self {
             if (@typeInfo(T) != .float) @panic("normalize() is only supported for floating-point vector types");
 
-            const len = self.length();
-            if (len == 0) return self;
-            return .{ .d = self.d / @as(@Vector(4, T), @splat(len)) };
+            const len = v.length();
+            if (len == 0) return v;
+            return .{ .d = v.d / @as(@Vector(4, T), @splat(len)) };
         }
     };
 }
