@@ -54,7 +54,7 @@ pub fn Mat4(T: type) type {
         }
 
         pub fn rotate(angle_rad: T, v: root.Vec3(T)) Self {
-            if (!@typeInfo(T).isFloat) @compileError("rotate() is only supported for floating-point types.");
+            if (@typeInfo(T) != .float) @compileError("rotate() is only supported for floating-point types.");
             var m = Self.identity(1);
             const c = math.cos(angle_rad);
             const s = math.sin(angle_rad);
@@ -95,7 +95,7 @@ pub fn Mat4(T: type) type {
         }
 
         pub fn perspective(fovy_rad: T, aspect: T, near: T, far: T) Self {
-            if (!@typeInfo(T).isFloat) @compileError("perspective() is only supported for floating-point types.");
+            if (@typeInfo(T) != .float) @compileError("perspective() is only supported for floating-point types.");
             var m = Self.identity(1);
             const tan_half_fovy = math.tan(fovy_rad / 2.0);
             const fov_scale = 1.0 / tan_half_fovy;
@@ -123,7 +123,7 @@ pub fn Mat4(T: type) type {
         }
 
         pub fn orthographic(left: T, right: T, bottom: T, top: T, near: T, far: T) Self {
-            if (!@typeInfo(T).isFloat) @compileError("orthographic() is only supported for floating-point types.");
+            if (@typeInfo(T) != .float) @compileError("orthographic() is only supported for floating-point types.");
             var m = Self.identity(1);
             m.d[0] = 2.0 / (right - left);
             m.d[1] = 0.0;
@@ -156,7 +156,7 @@ pub fn Mat4(T: type) type {
         }
 
         pub fn lookAt(eye: root.Vec3(f32), target: root.Vec3(f32), up: root.Vec3(f32)) Self {
-            if (!@typeInfo(T).isFloat) @compileError("lookAt() is only supported for floating-point types.");
+            if (@typeInfo(T) != .float) @compileError("lookAt() is only supported for floating-point types.");
             var m = Self.identity(1);
 
             var z_axis = root.Vec3(f32).new(target.d[0] - eye.d[0], target.d[1] - eye.d[1], target.d[2] - eye.d[2]);
@@ -210,7 +210,7 @@ pub fn Mat4(T: type) type {
         }
 
         pub fn inverse(m: Self) Self {
-            if (!@typeInfo(T).isFloat) @compileError("inverse() is only supported for floating-point types.");
+            if (@typeInfo(T) != .float) @compileError("inverse() is only supported for floating-point types.");
 
             var inv: [16]T = undefined;
 
@@ -247,4 +247,3 @@ pub fn Mat4(T: type) type {
         }
     };
 }
-const testing = @import("std").testing;
