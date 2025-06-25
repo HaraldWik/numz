@@ -151,9 +151,9 @@ pub fn Mat4(T: type) type {
 
         fn crossProduct3D(a: Vec3(f32), b: Vec3(f32)) Vec3(f32) {
             return .new(
-                (a[1] * b[2]) - (a[2] * b[1]),
-                (a[2] * b[0]) - (a[0] * b[2]),
-                (a[0] * b[1]) - (a[1] * b[0]),
+                (a.d[1] * b.d[2]) - (a.d[2] * b.d[1]),
+                (a.d[2] * b.d[0]) - (a.d[0] * b.d[2]),
+                (a.d[0] * b.d[1]) - (a.d[1] * b.d[0]),
             );
         }
 
