@@ -40,8 +40,11 @@ pub fn Vec2(T: type) type {
             return (self.d * other.d)[0] + (self.d * other.d)[1];
         }
 
-        pub inline fn cross(self: Self, other: Self) T {
-            return (self.d[0] * other.d[1]) - (self.d[1] * other.d[0]);
+        pub inline fn cross(self: Self, other: Self) Self {
+            return .new(
+                self.d[1] * other.d[2] - self.d[2] * other.d[1],
+                self.d[2] * other.d[0] - self.d[0] * other.d[2],
+            );
         }
 
         pub inline fn lengthSq(self: Self) T {
@@ -96,10 +99,6 @@ pub fn Vec3(T: type) type {
 
         pub inline fn dot(self: Self, other: Self) T {
             return (self.d * other.d)[0] + (self.d * other.d)[1];
-        }
-
-        pub inline fn cross(self: Self, other: Self) T {
-            return (self.d[0] * other.d[1]) - (self.d[1] * other.d[0]);
         }
 
         pub inline fn lengthSq(self: Self) T {
