@@ -1,6 +1,8 @@
 const std = @import("std");
 const math = @import("std").math;
-const root = @import("root");
+const vectors = @import("vectors.zig");
+
+const Vec3 = vectors.Vec3;
 
 pub fn Mat4(T: type) type {
     return struct {
@@ -37,7 +39,7 @@ pub fn Mat4(T: type) type {
             return Self.new(result_data);
         }
 
-        pub fn translate(v: root.Vec3(T)) Self {
+        pub fn translate(v: Vec3(T)) Self {
             var m = Self.identity(1);
             m.d[12] = v.d[0];
             m.d[13] = v.d[1];
@@ -45,7 +47,7 @@ pub fn Mat4(T: type) type {
             return m;
         }
 
-        pub fn scale(v: root.Vec3(T)) Self {
+        pub fn scale(v: Vec3(T)) Self {
             var m = Self.identity(1);
             m.d[0] = v.d[0];
             m.d[5] = v.d[1];
@@ -53,7 +55,7 @@ pub fn Mat4(T: type) type {
             return m;
         }
 
-        pub fn rotate(angle_rad: T, v: root.Vec3(T)) Self {
+        pub fn rotate(angle_rad: T, v: Vec3(T)) Self {
             if (@typeInfo(T) != .float) @compileError("rotate() is only supported for floating-point types.");
             var m = Self.identity(1);
             const c = math.cos(angle_rad);
@@ -147,7 +149,7 @@ pub fn Mat4(T: type) type {
             return m;
         }
 
-        fn crossProduct3D(a: root.Vec3(f32), b: root.Vec3(f32)) root.Vec3(f32) {
+        fn crossProduct3D(a: Vec3(f32), b: Vec3(f32)) Vec3(f32) {
             return .new(
                 (a[1] * b[2]) - (a[2] * b[1]),
                 (a[2] * b[0]) - (a[0] * b[2]),
@@ -155,11 +157,11 @@ pub fn Mat4(T: type) type {
             );
         }
 
-        pub fn lookAt(eye: root.Vec3(f32), target: root.Vec3(f32), up: root.Vec3(f32)) Self {
+        pub fn lookAt(eye: Vec3(f32), target: Vec3(f32), up: Vec3(f32)) Self {
             if (@typeInfo(T) != .float) @compileError("lookAt() is only supported for floating-point types.");
             var m = Self.identity(1);
 
-            var z_axis = root.Vec3(f32).new(target.d[0] - eye.d[0], target.d[1] - eye.d[1], target.d[2] - eye.d[2]);
+            var z_axis = Vec3(f32).new(target.d[0] - eye.d[0], target.d[1] - eye.d[1], target.d[2] - eye.d[2]);
             const z_len_sq = z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2];
             const z_len = math.sqrt(z_len_sq);
             if (z_len == 0.0) return Self.identity(1);
