@@ -1,4 +1,4 @@
-const std = @import("std");
-const math = @import("std").math;
 const vectors = @import("vectors.zig");
+const matrixes = @import("matrixes.zig");
 pub usingnamespace vectors;
+pub usingnamespace matrixes;
