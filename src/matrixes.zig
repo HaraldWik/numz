@@ -41,17 +41,17 @@ pub fn Mat4(T: type) type {
 
         pub fn translate(v: Vec3(T)) Self {
             var m = Self.identity(1);
-            m.d[12] = v.d[0];
-            m.d[13] = v.d[1];
-            m.d[14] = v.d[2];
+            m.d[12] = v[0];
+            m.d[13] = v[1];
+            m.d[14] = v[2];
             return m;
         }
 
         pub fn scale(v: Vec3(T)) Self {
             var m = Self.identity(1);
-            m.d[0] = v.d[0];
-            m.d[5] = v.d[1];
-            m.d[10] = v.d[2];
+            m.d[0] = v[0];
+            m.d[5] = v[1];
+            m.d[10] = v[2];
             return m;
         }
 
@@ -62,9 +62,9 @@ pub fn Mat4(T: type) type {
             const s = math.sin(angle_rad);
             const C = 1.0 - c;
 
-            var x = v.d[0];
-            var y = v.d[1];
-            var z = v.d[2];
+            var x = v[0];
+            var y = v[1];
+            var z = v[2];
 
             const axis_len_sq = x * x + y * y + z * z;
             const axis_len = math.sqrt(axis_len_sq);
@@ -150,53 +150,53 @@ pub fn Mat4(T: type) type {
         }
 
         fn crossProduct3D(a: Vec3(f32), b: Vec3(f32)) Vec3(f32) {
-            return .new(
-                (a.d[1] * b.d[2]) - (a.d[2] * b.d[1]),
-                (a.d[2] * b.d[0]) - (a.d[0] * b.d[2]),
-                (a.d[0] * b.d[1]) - (a.d[1] * b.d[0]),
-            );
+            return Vec3(f32){
+                (a[1] * b[2]) - (a[2] * b[1]),
+                (a[2] * b[0]) - (a[0] * b[2]),
+                (a[0] * b[1]) - (a[1] * b[0]),
+            };
         }
 
         pub fn lookAt(eye: Vec3(f32), target: Vec3(f32), up: Vec3(f32)) Self {
             if (@typeInfo(T) != .float) @compileError("lookAt() is only supported for floating-point types.");
             var m = Self.identity(1);
 
-            var z_axis = Vec3(f32).new(target.d[0] - eye.d[0], target.d[1] - eye.d[1], target.d[2] - eye.d[2]);
-            const z_len_sq = z_axis.d[0] * z_axis.d[0] + z_axis.d[1] * z_axis.d[1] + z_axis.d[2] * z_axis.d[2];
+            var z_axis = Vec3(f32){ target[0] - eye[0], target[1] - eye[1], target[2] - eye[2] };
+            const z_len_sq = z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2];
             const z_len = math.sqrt(z_len_sq);
             if (z_len == 0.0) return Self.identity(1);
-            z_axis.d[0] /= z_len;
-            z_axis.d[1] /= z_len;
-            z_axis.d[2] /= z_len;
+            z_axis[0] /= z_len;
+            z_axis[1] /= z_len;
+            z_axis[2] /= z_len;
 
             var x_axis = crossProduct3D(up, z_axis);
-            const x_len_sq = x_axis.d[0] * x_axis.d[0] + x_axis.d[1] * x_axis.d[1] + x_axis.d[2] * x_axis.d[2];
+            const x_len_sq = x_axis[0] * x_axis[0] + x_axis[1] * x_axis[1] + x_axis[2] * x_axis[2];
             const x_len = math.sqrt(x_len_sq);
             if (x_len == 0.0) return Self.identity(1);
-            x_axis.d[0] /= x_len;
-            x_axis.d[1] /= x_len;
-            x_axis.d[2] /= x_len;
+            x_axis[0] /= x_len;
+            x_axis[1] /= x_len;
+            x_axis[2] /= x_len;
 
             const y_axis = crossProduct3D(z_axis, x_axis);
 
-            m.d[0] = x_axis.d[0];
-            m.d[1] = y_axis.d[0];
-            m.d[2] = z_axis.d[0];
+            m.d[0] = x_axis[0];
+            m.d[1] = y_axis[0];
+            m.d[2] = z_axis[0];
             m.d[3] = 0.0;
 
-            m.d[4] = x_axis.d[1];
-            m.d[5] = y_axis.d[1];
-            m.d[6] = z_axis.d[1];
+            m.d[4] = x_axis[1];
+            m.d[5] = y_axis[1];
+            m.d[6] = z_axis[1];
             m.d[7] = 0.0;
 
-            m.d[8] = x_axis.d[2];
-            m.d[9] = y_axis.d[2];
-            m.d[10] = z_axis.d[2];
+            m.d[8] = x_axis[2];
+            m.d[9] = y_axis[2];
+            m.d[10] = z_axis[2];
             m.d[11] = 0.0;
 
-            m.d[12] = -(x_axis.d[0] * eye.d[0] + x_axis.d[1] * eye.d[1] + x_axis.d[2] * eye.d[2]);
-            m.d[13] = -(y_axis.d[0] * eye.d[0] + y_axis.d[1] * eye.d[1] + y_axis.d[2] * eye.d[2]);
-            m.d[14] = -(z_axis.d[0] * eye.d[0] + z_axis.d[1] * eye.d[1] + z_axis.d[2] * eye.d[2]);
+            m.d[12] = -(x_axis[0] * eye.d[0] + x_axis[1] * eye.d[1] + x_axis[2] * eye.d[2]);
+            m.d[13] = -(y_axis[0] * eye.d[0] + y_axis[1] * eye.d[1] + y_axis[2] * eye.d[2]);
+            m.d[14] = -(z_axis[0] * eye.d[0] + z_axis[1] * eye.d[1] + z_axis[2] * eye.d[2]);
             m.d[15] = 1.0;
             return m;
         }
@@ -248,4 +248,12 @@ pub fn Mat4(T: type) type {
             return .new(result_data);
         }
     };
+}
+
+test "Mat4" {
+    _ = Mat4(f32).identity(1.0);
+    _ = Mat4(f32).mul(.identity(1.0), .identity(1.0));
+    _ = Mat4(f32).translate(.{ 1, 2, 3 });
+    _ = Mat4(f32).scale(.{ 1, 2, 3 });
+    _ = Mat4(f32).rotate(std.math.degreesToRadians(90), .{ 1, 2, 3 });
 }
