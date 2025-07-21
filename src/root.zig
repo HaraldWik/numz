@@ -244,6 +244,37 @@ pub fn Mat4(T: type) type {
             }
             return .new(result_data);
         }
+
+        pub fn fromQuaternion(q: Vec4(T)) Self {
+            var m = identity(1);
+
+            // Pre-calculate terms for efficiency
+            const x2 = q[0] * q[0];
+            const y2 = q[1] * q[1];
+            const z2 = q[2] * q[2];
+            const xy = q[0] * q[1];
+            const xz = q[0] * q[2];
+            const yz = q[1] * q[2];
+            const wx = q[3] * q[0];
+            const wy = q[3] * q[1];
+            const wz = q[3] * q[2];
+
+            // Column 0
+            m.d[0] = 1.0 - 2.0 * (y2 + z2); // m00
+            m.d[1] = 2.0 * (xy + wz); // m10
+            m.d[2] = 2.0 * (xz - wy); // m20
+
+            // Column 1
+            m.d[4] = 2.0 * (xy - wz); // m01
+            m.d[5] = 1.0 - 2.0 * (x2 + z2); // m11
+            m.d[6] = 2.0 * (yz + wx); // m21
+
+            m.d[8] = 2.0 * (xz + wy); // m02
+            m.d[9] = 2.0 * (yz - wx); // m12
+            m.d[10] = 1.0 - 2.0 * (x2 + y2); // m22
+
+            return m;
+        }
     };
 }
 
