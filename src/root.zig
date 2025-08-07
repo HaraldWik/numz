@@ -1,14 +1,17 @@
 const std = @import("std");
 const math = @import("std").math;
 
-pub fn Mat4(T: type) type {
+/// Deprecated; use `Mat4x4` instead.
+pub const Mat4 = Mat4x4;
+
+pub fn Mat4x4(T: type) type {
     return struct {
         const Self = @This();
 
         d: [16]T,
 
         pub fn new(data: [16]T) Self {
-            return Self{ .d = data };
+            return .{ .d = data };
         }
 
         pub fn identity(diagonal: T) Self {
@@ -33,11 +36,11 @@ pub fn Mat4(T: type) type {
                     result_data[row + col * 4] = sum;
                 }
             }
-            return Self.new(result_data);
+            return .new(result_data);
         }
 
         pub fn translate(v: Vec3(T)) Self {
-            var m = Self.identity(1);
+            var m: Self = .identity(1);
             m.d[12] = v[0];
             m.d[13] = v[1];
             m.d[14] = v[2];
@@ -45,7 +48,7 @@ pub fn Mat4(T: type) type {
         }
 
         pub fn scale(v: Vec3(T)) Self {
-            var m = Self.identity(1);
+            var m: Self = .identity(1);
             m.d[0] = v[0];
             m.d[5] = v[1];
             m.d[10] = v[2];
@@ -54,7 +57,7 @@ pub fn Mat4(T: type) type {
 
         pub fn rotate(angle_rad: T, v: Vec3(T)) Self {
             if (@typeInfo(T) != .float) @compileError("rotate() is only supported for floating-point types.");
-            var m = Self.identity(1);
+            var m: Self = .identity(1);
             const c = math.cos(angle_rad);
             const s = math.sin(angle_rad);
             const C = 1.0 - c;
@@ -95,7 +98,7 @@ pub fn Mat4(T: type) type {
 
         pub fn perspective(fovy_rad: T, aspect: T, near: T, far: T) Self {
             if (@typeInfo(T) != .float) @compileError("perspective() is only supported for floating-point types.");
-            var m = Self.identity(1);
+            var m: Self = .identity(1);
             const tan_half_fovy = math.tan(fovy_rad / 2.0);
             const fov_scale = 1.0 / tan_half_fovy;
 
@@ -123,7 +126,7 @@ pub fn Mat4(T: type) type {
 
         pub fn orthographic(left: T, right: T, bottom: T, top: T, near: T, far: T) Self {
             if (@typeInfo(T) != .float) @compileError("orthographic() is only supported for floating-point types.");
-            var m = Self.identity(1);
+            var m: Self = .identity(1);
             m.d[0] = 2.0 / (right - left);
             m.d[1] = 0.0;
             m.d[2] = 0.0;
@@ -156,12 +159,12 @@ pub fn Mat4(T: type) type {
 
         pub fn lookAt(eye: Vec3(f32), target: Vec3(f32), up: Vec3(f32)) Self {
             if (@typeInfo(T) != .float) @compileError("lookAt() is only supported for floating-point types.");
-            var m = Self.identity(1);
+            var m: Self = .identity(1);
 
             var z_axis = Vec3(f32){ target[0] - eye[0], target[1] - eye[1], target[2] - eye[2] };
             const z_len_sq = z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2];
             const z_len = math.sqrt(z_len_sq);
-            if (z_len == 0.0) return Self.identity(1);
+            if (z_len == 0.0) return .identity(1);
             z_axis[0] /= z_len;
             z_axis[1] /= z_len;
             z_axis[2] /= z_len;
@@ -169,7 +172,7 @@ pub fn Mat4(T: type) type {
             var x_axis = crossProduct3D(up, z_axis);
             const x_len_sq = x_axis[0] * x_axis[0] + x_axis[1] * x_axis[1] + x_axis[2] * x_axis[2];
             const x_len = math.sqrt(x_len_sq);
-            if (x_len == 0.0) return Self.identity(1);
+            if (x_len == 0.0) return .identity(1);
             x_axis[0] /= x_len;
             x_axis[1] /= x_len;
             x_axis[2] /= x_len;
@@ -246,7 +249,7 @@ pub fn Mat4(T: type) type {
         }
 
         pub fn fromQuaternion(q: Vec4(T)) Self {
-            var m = identity(1);
+            var m: Self = .identity(1);
 
             // Pre-calculate terms for efficiency
             const x2 = q[0] * q[0];
