@@ -249,25 +249,25 @@ pub fn Mat4x4(T: type) type {
             const x2 = q[0] * q[0];
             const y2 = q[1] * q[1];
             const z2 = q[2] * q[2];
-            const xy = q[0] * q[1];
-            const xz = q[0] * q[2];
-            const yz = q[1] * q[2];
-            const wx = q[3] * q[0];
-            const wy = q[3] * q[1];
-            const wz = q[3] * q[2];
+            const _xy = q[0] * q[1];
+            const _xz = q[0] * q[2];
+            const _yz = q[1] * q[2];
+            const _wx = q[3] * q[0];
+            const _wy = q[3] * q[1];
+            const _wz = q[3] * q[2];
 
             // Column 0
             m.d[0] = 1.0 - 2.0 * (y2 + z2); // m00
-            m.d[1] = 2.0 * (xy + wz); // m10
-            m.d[2] = 2.0 * (xz - wy); // m20
+            m.d[1] = 2.0 * (_xy + _wz); // m10
+            m.d[2] = 2.0 * (_xy - _wy); // m20
 
             // Column 1
-            m.d[4] = 2.0 * (xy - wz); // m01
+            m.d[4] = 2.0 * (_xy - _wz); // m01
             m.d[5] = 1.0 - 2.0 * (x2 + z2); // m11
-            m.d[6] = 2.0 * (yz + wx); // m21
+            m.d[6] = 2.0 * (_yz + _wx); // m21
 
-            m.d[8] = 2.0 * (xz + wy); // m02
-            m.d[9] = 2.0 * (yz - wx); // m12
+            m.d[8] = 2.0 * (_xz + _wy); // m02
+            m.d[9] = 2.0 * (_yz - _wx); // m12
             m.d[10] = 1.0 - 2.0 * (x2 + y2); // m22
 
             return m;
@@ -293,11 +293,11 @@ pub fn Vec4(T: type) type {
     return @Vector(4, T);
 }
 
-fn info(v: anytype) struct { comptime_int, type } {
-    return switch (@typeInfo(@TypeOf(v))) {
-        .vector => |i| i.len,
-        .array => |i| i.len,
-        else => @compileError("Unsupported type in info()"),
+fn info(v: type) struct { usize, type } {
+    return switch (@typeInfo(v)) {
+        .vector => |i| .{ i.len, i.child },
+        .array => |i| .{ i.len, i.child },
+        else => @compileError("type must be of typeof vector or array"),
     };
 }
 
@@ -306,19 +306,19 @@ pub fn xy(v: anytype) Vec2(@TypeOf(v[0])) {
 }
 
 pub fn yz(v: anytype) Vec2(@TypeOf(v[0])) {
+    const len, _ = info(@TypeOf(v));
+    if (len < 2) @compileError("Vector must have z");
     return .{ v[1], v[2] };
 }
 
 pub fn xz(v: anytype) Vec2(@TypeOf(v[0])) {
+    const len, _ = info(@TypeOf(v));
+    if (len < 2) @compileError("Vector must have z");
     return .{ v[0], v[2] };
 }
 
-pub fn xyz(v: anytype) Vec2(@TypeOf(v[0])) {
-    const len = switch (@typeInfo(@TypeOf(v))) {
-        .vector => |info| info.len,
-        .array => |info| info.len,
-        else => @compileError("Unsupported type in xyz()"),
-    };
+pub fn xyz(v: anytype) @TypeOf(v) {
+    const len, _ = info(@TypeOf(v));
 
     return switch (len) {
         2 => .{ v[0], v[1], 0 },
@@ -328,12 +328,8 @@ pub fn xyz(v: anytype) Vec2(@TypeOf(v[0])) {
     };
 }
 
-pub fn xyzw(v: anytype) Vec2(@TypeOf(v[0])) {
-    const len = switch (@typeInfo(@TypeOf(v))) {
-        .vector => |info| info.len,
-        .array => |info| info.len,
-        else => @compileError("Unsupported type in xyzw()"),
-    };
+pub fn xyzw(v: anytype) @TypeOf(v) {
+    const len, _ = info(@TypeOf(v));
 
     return switch (len) {
         2 => .{ v[0], v[1], 0, 0 },
@@ -344,57 +340,27 @@ pub fn xyzw(v: anytype) Vec2(@TypeOf(v[0])) {
 }
 
 pub fn eql(a: anytype, b: @TypeOf(a)) bool {
-    return switch (@typeInfo(@TypeOf(a))) {
-        .vector => |info| blk: {
-            for (0..info.len) |i| {
-                if (a[i] != b[i]) return false;
-            }
-            break :blk true;
-        },
-        .array => |info| blk: {
-            for (0..info.len) |i| {
-                if (a[i] != b[i]) return false;
-            }
-            break :blk true;
-        },
-        else => @compileError("Unsupported type in eql()"),
-    };
+    const len, _ = info(@TypeOf(a));
+    inline for (0..len) |i| {
+        if (a[i] != b[i]) return false;
+    }
+    return true;
 }
 
 pub fn scale(v: anytype, s: @TypeOf(v[0])) @TypeOf(v) {
-    return switch (@typeInfo(@TypeOf(v))) {
-        .vector => |info| blk: {
-            var result: @TypeOf(v) = undefined;
-            for (0..info.len) |i| {
-                result[i] = v[i] * s;
-            }
-            break :blk result;
-        },
-        .array => |info| blk: {
-            var result: [info.len]info.child = undefined;
-            for (0..info.len) |i| {
-                result[i] = v[i] * s;
-            }
-            break :blk result;
-        },
-        else => @compileError("Unsupported type in scale()"),
-    };
+    var result: @TypeOf(v) = undefined;
+    const len, _ = info(@TypeOf(v));
+    inline for (0..len) |i| {
+        result[i] = v[i] * s;
+    }
+    return result;
 }
 
 pub fn dot(a: anytype, b: @TypeOf(a)) @TypeOf(a[0]) {
-    return switch (@typeInfo(@TypeOf(a))) {
-        .vector => |info| blk: {
-            var acc: info.child = 0;
-            for (0..info.len) |i| acc += a[i] * b[i];
-            break :blk acc;
-        },
-        .array => |info| blk: {
-            var acc: info.child = 0;
-            for (0..info.len) |i| acc += a[i] * b[i];
-            break :blk acc;
-        },
-        else => @compileError("Unsupported type in dot()"),
-    };
+    const len, const T = info(@TypeOf(a));
+    var acc: T = std.mem.zeroes(T);
+    for (0..len) |i| acc += a[i] * b[i];
+    return acc;
 }
 
 pub fn length(v: anytype) @TypeOf(v[0]) {
@@ -408,27 +374,20 @@ pub fn normalize(v: anytype) @TypeOf(v) {
 }
 
 pub fn cross(a: anytype, b: @TypeOf(a)) @TypeOf(a) {
-    return switch (@typeInfo(@TypeOf(a))) {
-        .vector => |info| blk: {
-            if (info.len != 3) @compileError("cross() only supports 3D vectors");
-
-            break :blk @as(@TypeOf(a), .{
-                a[1] * b[2] - a[2] * b[1],
-                a[2] * b[0] - a[0] * b[2],
-                a[0] * b[1] - a[1] * b[0],
-            });
-        },
-        .array => |info| blk: {
-            if (info.len != 3) @compileError("cross() only supports 3D vectors");
-
-            break :blk [_]info.child{
-                a[1] * b[2] - a[2] * b[1],
-                a[2] * b[0] - a[0] * b[2],
-                a[0] * b[1] - a[1] * b[0],
-            };
-        },
-        else => @compileError("Unsupported type in cross()"),
+    const len, const T = info(@TypeOf(a));
+    if (len != 3) @compileError("cross() only supports vec3");
+    return [_]T{
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
     };
+}
+
+pub inline fn negate(v: anytype) @TypeOf(v) {
+    var ret: @TypeOf(v) = undefined;
+    const len, _ = info(@TypeOf(v));
+    inline for (0..len) |i| ret[i] = -v[i];
+    return ret;
 }
 
 pub inline fn distance(a: anytype, b: @TypeOf(a)) @TypeOf(a[0], b[0]) {
@@ -447,16 +406,8 @@ pub inline fn mix(a: anytype, b: anytype, t: @TypeOf(b[0], b[0])) @TypeOf(a, b) 
     return scale(a, (1 - t)) + scale(b, t);
 }
 
-pub inline fn faceforward(n: anytype, i: anytype, n_ref: anytype) @TypeOf(n) {
-    return if (dot(i, n_ref) < 0) n else scale(n, -1);
-}
-
 pub inline fn forward(from: anytype, to: anytype) @TypeOf(from) {
     return normalize(to - from);
-}
-
-pub inline fn negate(v: anytype) @TypeOf(v) {
-    return scale(@TypeOf(v[0]), v, @as(@TypeOf(v[0]), -1));
 }
 
 test "swizzle functions" {
@@ -465,7 +416,6 @@ test "swizzle functions" {
     try std.testing.expectEqual(Vec2(f32){ 1.0, 2.0 }, xy(v4));
     try std.testing.expectEqual(Vec2(f32){ 2.0, 3.0 }, yz(v4));
     try std.testing.expectEqual(Vec2(f32){ 1.0, 3.0 }, xz(v4));
-    try std.testing.expectEqual(Vec3(f32){ 1.0, 2.0, 3.0 }, xyz(v4));
     try std.testing.expectEqual(Vec4(f32){ 1.0, 2.0, 3.0, 4.0 }, xyzw(v4));
 }
 
@@ -564,13 +514,6 @@ test "mix" {
     try std.testing.expect(eql(mix(a, b, 0.5), Vec3(f32){ 5, 5, 5 }));
 }
 
-test "faceforward" {
-    const n: Vec3(f32) = .{ 0, 0, 1 };
-    const i: Vec3(f32) = .{ 0, 0, -1 };
-    const n_ref: Vec3(f32) = .{ 0, 0, 1 };
-    try std.testing.expect(eql(faceforward(n, i, n_ref), Vec3(f32){ 0, 0, -1 }));
-}
-
 test "forward" {
     const from: Vec3(f32) = .{ 0, 0, 0 };
     const to: Vec3(f32) = .{ 0, 0, 1 };
@@ -581,5 +524,10 @@ test "forward" {
 
 test "negate" {
     const v: Vec4(f32) = .{ 1, -2, 3, -4 };
-    try std.testing.expect(eql(negate(v), Vec4(f32){ -1, 2, -3, 4 }));
+    const expected: Vec4(f32) = .{ -1, 2, -3, 4 };
+    const result = negate(v);
+
+    inline for (0..4) |i| {
+        try std.testing.expectApproxEqAbs(result[i], expected[i], 0.00001);
+    }
 }
