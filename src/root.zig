@@ -55,106 +55,100 @@ pub fn Mat4x4(T: type) type {
             return m;
         }
 
+        /// Standard Rodrigues’ rotation matrix.
+        /// Creates a 4×4 rotation matrix from an axis and angle (in radians),
+        /// normalizing the axis internally. Follows the right-hand rule and
+        /// returns the identity matrix if the axis length is zero.
         pub fn rotate(angle_rad: T, v: Vec3(T)) Self {
             if (@typeInfo(T) != .float) @compileError("rotate() is only supported for floating-point types.");
-            var m: Self = .identity(1);
-            const c = math.cos(angle_rad);
-            const s = math.sin(angle_rad);
-            const C = 1.0 - c;
+            const cos = math.cos(angle_rad);
+            const sin = math.sin(angle_rad);
+            const c = 1.0 - cos;
 
-            var x = v[0];
-            var y = v[1];
-            var z = v[2];
-
-            const axis_len_sq = x * x + y * y + z * z;
+            const axis_len_sq = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
             const axis_len = math.sqrt(axis_len_sq);
             if (axis_len == 0.0) return Self.identity(1);
 
-            x /= axis_len;
-            y /= axis_len;
-            z /= axis_len;
+            v[0] /= axis_len;
+            v[1] /= axis_len;
+            v[2] /= axis_len;
 
-            m.d[0] = x * x * C + c;
-            m.d[1] = y * x * C + z * s;
-            m.d[2] = z * x * C - y * s;
-            m.d[3] = 0.0;
+            return .new(.{
+                v[0] * v[0] * c + cos,        v[1] * v[0] * c + v[2] * sin, v[2] * v[0] * c - v[1] * sin, 0.0,
 
-            m.d[4] = x * y * C - z * s;
-            m.d[5] = y * y * C + c;
-            m.d[6] = z * y * C + x * s;
-            m.d[7] = 0.0;
+                v[0] * v[1] * c - v[2] * sin, v[1] * v[1] * c + cos,        v[2] * v[1] * c + v[0] * sin, 0.0,
 
-            m.d[8] = x * z * C + y * s;
-            m.d[9] = y * z * C - x * s;
-            m.d[10] = z * z * C + c;
-            m.d[11] = 0.0;
+                v[0] * v[2] * c + v[1] * sin, v[1] * v[2] * c - v[0] * sin, v[2] * v[2] * c + cos,        0.0,
 
-            m.d[12] = 0.0;
-            m.d[13] = 0.0;
-            m.d[14] = 0.0;
-            m.d[15] = 1.0;
-            return m;
+                0.0,                          0.0,                          0.0,                          1.0,
+            });
         }
 
+        /// Creates a standard right-handed perspective projection matrix.
+        ///
+        /// Parameters:
+        /// - `fovy_rad`: Vertical field of view, in radians.
+        /// - `aspect`: Aspect ratio (width / height).
+        /// - `near`: Distance to the near clipping plane (must be > 0).
+        /// - `far`: Distance to the far clipping plane.
+        ///
+        /// Produces a 4×4 matrix suitable for projecting 3D coordinates into
+        /// normalized device coordinates (NDC) in Vulkan-style clip space,
+        /// where Z ranges from 0 to 1 and Y is up.
         pub fn perspective(fovy_rad: T, aspect: T, near: T, far: T) Self {
             if (@typeInfo(T) != .float) @compileError("perspective() is only supported for floating-point types.");
-            var m: Self = .identity(1);
-            const tan_half_fovy = math.tan(fovy_rad / 2.0);
-            const fov_scale = 1.0 / tan_half_fovy;
+            const fov_scale = 1.0 / math.tan(fovy_rad / 2.0);
 
-            m.d[0] = fov_scale / aspect;
-            m.d[1] = 0.0;
-            m.d[2] = 0.0;
-            m.d[3] = 0.0;
-
-            m.d[4] = 0.0;
-            m.d[5] = fov_scale;
-            m.d[6] = 0.0;
-            m.d[7] = 0.0;
-
-            m.d[8] = 0.0;
-            m.d[9] = 0.0;
-            m.d[10] = far / (near - far);
-            m.d[11] = -1.0;
-
-            m.d[12] = 0.0;
-            m.d[13] = 0.0;
-            m.d[14] = (far * near) / (near - far);
-            m.d[15] = 0.0;
-            return m;
+            return .new(.{
+                fov_scale / aspect, 0.0,       0.0,                         0.0,
+                0.0,                fov_scale, 0.0,                         0.0,
+                0.0,                0.0,       far / (near - far),          -1.0,
+                0.0,                0.0,       (far * near) / (near - far), 0.0,
+            });
         }
 
+        /// Creates a right-handed orthographic projection matrix.
+        ///
+        /// Parameters:
+        /// - `left`, `right`: The left and right bounds of the view volume.
+        /// - `bottom`, `top`: The bottom and top bounds of the view volume.
+        /// - `near`, `far`: The distances to the near and far clipping planes.
+        ///
+        /// Produces a 4×4 matrix that maps the specified cuboid volume
+        /// into normalized device coordinates (NDC) in Vulkan-style clip space,
+        /// where X, Y ∈ [-1, 1] and Z ∈ [0, 1].
+        ///
+        /// Unlike perspective projection, this maintains parallel lines without
+        /// introducing perspective distortion.
         pub fn orthographic(left: T, right: T, bottom: T, top: T, near: T, far: T) Self {
             if (@typeInfo(T) != .float) @compileError("orthographic() is only supported for floating-point types.");
-            var m: Self = .identity(1);
-            m.d[0] = 2.0 / (right - left);
-            m.d[1] = 0.0;
-            m.d[2] = 0.0;
-            m.d[3] = 0.0;
-
-            m.d[4] = 0.0;
-            m.d[5] = 2.0 / (top - bottom);
-            m.d[6] = 0.0;
-            m.d[7] = 0.0;
-
-            m.d[8] = 0.0;
-            m.d[9] = 0.0;
-            m.d[10] = -2.0 / (far - near);
-            m.d[11] = 0.0;
-
-            m.d[12] = -(right + left) / (right - left);
-            m.d[13] = -(top + bottom) / (top - bottom);
-            m.d[14] = -(far + near) / (far - near);
-            m.d[15] = 1.0;
-            return m;
+            return .new(.{
+                2.0 / (right - left),             0.0,                              0.0,                          0.0,
+                0.0,                              2.0 / (top - bottom),             0.0,                          0.0,
+                0.0,                              0.0,                              -2.0 / (far - near),          0.0,
+                -(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near), 1.0,
+            });
         }
 
+        /// Computes the 3D cross product of two vectors.
+        ///
+        /// The result is a vector perpendicular to both `a` and `b`,
+        /// with a direction given by the right-hand rule and a magnitude
+        /// equal to `|a| * |b| * sin(theta)`, where `theta` is the angle
+        /// between them.
+        ///
+        /// Parameters:
+        /// - `a`: First input vector.
+        /// - `b`: Second input vector.
+        ///
+        /// Returns:
+        /// - A new vector representing `a × b`.
         fn crossProduct3D(a: Vec3(f32), b: Vec3(f32)) Vec3(f32) {
-            return Vec3(f32){
+            return .new(.{
                 (a[1] * b[2]) - (a[2] * b[1]),
                 (a[2] * b[0]) - (a[0] * b[2]),
                 (a[0] * b[1]) - (a[1] * b[0]),
-            };
+            });
         }
 
         pub fn lookAt(eye: Vec3(f32), target: Vec3(f32), up: Vec3(f32)) Self {
@@ -299,7 +293,57 @@ pub fn Vec4(T: type) type {
     return @Vector(4, T);
 }
 
-pub fn eql(a: anytype, b: anytype) bool {
+fn info(v: anytype) struct { comptime_int, type } {
+    return switch (@typeInfo(@TypeOf(v))) {
+        .vector => |i| i.len,
+        .array => |i| i.len,
+        else => @compileError("Unsupported type in info()"),
+    };
+}
+
+pub fn xy(v: anytype) Vec2(@TypeOf(v[0])) {
+    return .{ v[0], v[1] };
+}
+
+pub fn yz(v: anytype) Vec2(@TypeOf(v[0])) {
+    return .{ v[1], v[2] };
+}
+
+pub fn xz(v: anytype) Vec2(@TypeOf(v[0])) {
+    return .{ v[0], v[2] };
+}
+
+pub fn xyz(v: anytype) Vec2(@TypeOf(v[0])) {
+    const len = switch (@typeInfo(@TypeOf(v))) {
+        .vector => |info| info.len,
+        .array => |info| info.len,
+        else => @compileError("Unsupported type in xyz()"),
+    };
+
+    return switch (len) {
+        2 => .{ v[0], v[1], 0 },
+        3 => v,
+        4 => .{ v[0], v[1], v[2] },
+        else => unreachable,
+    };
+}
+
+pub fn xyzw(v: anytype) Vec2(@TypeOf(v[0])) {
+    const len = switch (@typeInfo(@TypeOf(v))) {
+        .vector => |info| info.len,
+        .array => |info| info.len,
+        else => @compileError("Unsupported type in xyzw()"),
+    };
+
+    return switch (len) {
+        2 => .{ v[0], v[1], 0, 0 },
+        3 => .{ v[0], v[1], v[2], 0 },
+        4 => v,
+        else => unreachable,
+    };
+}
+
+pub fn eql(a: anytype, b: @TypeOf(a)) bool {
     return switch (@typeInfo(@TypeOf(a))) {
         .vector => |info| blk: {
             for (0..info.len) |i| {
@@ -337,7 +381,7 @@ pub fn scale(v: anytype, s: @TypeOf(v[0])) @TypeOf(v) {
     };
 }
 
-pub fn dot(a: anytype, b: anytype) @TypeOf(a[0], b[0]) {
+pub fn dot(a: anytype, b: @TypeOf(a)) @TypeOf(a[0]) {
     return switch (@typeInfo(@TypeOf(a))) {
         .vector => |info| blk: {
             var acc: info.child = 0;
@@ -363,7 +407,7 @@ pub fn normalize(v: anytype) @TypeOf(v) {
     return scale(v, 1 / len);
 }
 
-pub fn cross(a: anytype, b: anytype) @TypeOf(a) {
+pub fn cross(a: anytype, b: @TypeOf(a)) @TypeOf(a) {
     return switch (@typeInfo(@TypeOf(a))) {
         .vector => |info| blk: {
             if (info.len != 3) @compileError("cross() only supports 3D vectors");
@@ -387,11 +431,11 @@ pub fn cross(a: anytype, b: anytype) @TypeOf(a) {
     };
 }
 
-pub inline fn distance(a: anytype, b: anytype) @TypeOf(a[0], b[0]) {
+pub inline fn distance(a: anytype, b: @TypeOf(a)) @TypeOf(a[0], b[0]) {
     return length(scale(a, 1) - scale(b, 1));
 }
 
-pub inline fn distanceSquared(a: anytype, b: anytype) @TypeOf(a[0], b[0]) {
+pub inline fn distanceSquared(a: anytype, b: @TypeOf(a)) @TypeOf(a[0], b[0]) {
     return dot(scale(a, 1) - scale(b, 1), scale(a, 1) - scale(b, 1));
 }
 
@@ -413,6 +457,16 @@ pub inline fn forward(from: anytype, to: anytype) @TypeOf(from) {
 
 pub inline fn negate(v: anytype) @TypeOf(v) {
     return scale(@TypeOf(v[0]), v, @as(@TypeOf(v[0]), -1));
+}
+
+test "swizzle functions" {
+    const v4 = Vec4(f32){ 1.0, 2.0, 3.0, 4.0 };
+
+    try std.testing.expectEqual(Vec2(f32){ 1.0, 2.0 }, xy(v4));
+    try std.testing.expectEqual(Vec2(f32){ 2.0, 3.0 }, yz(v4));
+    try std.testing.expectEqual(Vec2(f32){ 1.0, 3.0 }, xz(v4));
+    try std.testing.expectEqual(Vec3(f32){ 1.0, 2.0, 3.0 }, xyz(v4));
+    try std.testing.expectEqual(Vec4(f32){ 1.0, 2.0, 3.0, 4.0 }, xyzw(v4));
 }
 
 test "scale" {

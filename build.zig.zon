@@ -1,10 +1,9 @@
 .{
     .name = .numz,
     .version = "0.0.0",
-    .fingerprint = 0xc804785f0c5e30a1,
-    .minimum_zig_version = "0.15.0-dev.631+9a3540d61",
+    .fingerprint = 0xc804785f9b06eb57,
+    .minimum_zig_version = "0.15.0-dev.1380+e98aeeb73",
     .dependencies = .{},
-
     .paths = .{
         "build.zig",
         "build.zig.zon",
