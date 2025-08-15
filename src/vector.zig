@@ -80,16 +80,6 @@ pub fn dot(a: anytype, b: @TypeOf(a)) @TypeOf(a[0]) {
     return acc;
 }
 
-pub fn length(v: anytype) @TypeOf(v[0]) {
-    return std.math.sqrt(dot(v, v));
-}
-
-pub fn normalize(v: anytype) @TypeOf(v) {
-    const len = length(v);
-    if (len == 0) return v;
-    return scale(v, 1 / len);
-}
-
 pub fn cross(a: anytype, b: @TypeOf(a)) @TypeOf(a) {
     const len, const T = info(@TypeOf(a));
     if (len != 3) @compileError("cross() only supports vec3");
@@ -98,6 +88,16 @@ pub fn cross(a: anytype, b: @TypeOf(a)) @TypeOf(a) {
         a[2] * b[0] - a[0] * b[2],
         a[0] * b[1] - a[1] * b[0],
     };
+}
+
+pub fn length(v: anytype) @TypeOf(v[0]) {
+    return std.math.sqrt(dot(v, v));
+}
+
+pub fn normalize(v: anytype) @TypeOf(v) {
+    const len = length(v);
+    if (len == 0) return v;
+    return scale(v, 1 / len);
 }
 
 pub inline fn negate(v: anytype) @TypeOf(v) {

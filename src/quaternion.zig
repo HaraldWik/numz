@@ -9,12 +9,12 @@ pub fn Quaternion(T: type) type {
         z: T,
         w: T,
 
-        pub fn identity() @This() {
-            return .{ .x = 0, .y = 0, .z = 0, .w = 1 };
-        }
-
         pub fn new(x: T, y: T, z: T, w: T) @This() {
             return .{ .x = x, .y = y, .z = z, .w = w };
+        }
+
+        pub fn identity() @This() {
+            return .{ .x = 0, .y = 0, .z = 0, .w = 1 };
         }
 
         pub fn mul(a: @This(), b: @This()) @This() {
