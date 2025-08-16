@@ -21,7 +21,18 @@ const nz = @import("numz");
 
 pub fn main() !void {
     const mat: nz.mat.@"4x4"(f32) = .identity(1.0);
-    const vec3: nz.vec.@"3" = .{ 1, 2, 3 };
+    const a: nz.Vec3(f32) = .{ 1, 2, 3 };
+    const b: nz.Vec3(f32) = .{ 3, 2, 1 };
+
+    const result = a + b; // They are SIMD which makes them support operations and some functions like @abs
+
+    const arr = [3]f32{0, 1, 2};
+
+    _ = nz.vec.normalize(arr); // All vector functions also support array vectors
+
+    const c: nz.Vec2(u32) = undefined; // Support for Vec2
+    const d: nz.Vec4(u32) = undefined; // Support for Vec4
+    const e: @Vector(3, f32) = .{ 1, 2, 3 }; // Optioanly you can use this style
 }
 ```
 
@@ -45,6 +56,7 @@ pub fn main() !void {
 - reflect
 - mix
 - forward
+- forwardFromEuler
 
 ## Matrices
 
