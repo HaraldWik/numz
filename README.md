@@ -20,7 +20,7 @@ const numz_mod = b.dependency("numz", .{
 const nz = @import("numz");
 
 pub fn main() !void {
-    const mat: nz.mat.@"4x4"(f32) = .identity(1.0);
+    const mat: nz.Mat4x4(f32) = .identity(1.0);
     const a: nz.Vec3(f32) = .{ 1, 2, 3 };
     const b: nz.Vec3(f32) = .{ 3, 2, 1 };
 

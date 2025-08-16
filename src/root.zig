@@ -13,3 +13,5 @@ pub fn Vec3(T: type) type {
 pub fn Vec4(T: type) type {
     return @Vector(4, T);
 }
+
+pub const Mat4x4 = mat.@"4x4";
