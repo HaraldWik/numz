@@ -80,12 +80,12 @@ pub fn main() !void {
 
 ## Quaternions
 
-- Normal idk
+- Normal idk // This will change a lot
 
 ### Functions
 
-- new
 - identity
+- new
 - mul
 - conjugate
 - fromEuler

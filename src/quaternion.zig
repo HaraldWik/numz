@@ -1,6 +1,4 @@
 const std = @import("std");
-const @"3" = @import("vector.zig").@"3";
-const @"4" = @import("vector.zig").@"4";
 
 pub fn Quaternion(T: type) type {
     struct {
@@ -9,12 +7,10 @@ pub fn Quaternion(T: type) type {
         z: T,
         w: T,
 
+        pub const identity: @This() = .{ .x = 0, .y = 0, .z = 0, .w = 1 };
+
         pub fn new(x: T, y: T, z: T, w: T) @This() {
             return .{ .x = x, .y = y, .z = z, .w = w };
-        }
-
-        pub fn identity() @This() {
-            return .{ .x = 0, .y = 0, .z = 0, .w = 1 };
         }
 
         pub fn mul(a: @This(), b: @This()) @This() {
@@ -30,13 +26,13 @@ pub fn Quaternion(T: type) type {
             return .{ .x = -q.x, .y = -q.y, .z = -q.z, .w = q.w };
         }
 
-        pub fn fromEuler(pitch: f32, yaw: f32, roll: f32) @This() {
-            const cy = std.math.cos(yaw * 0.5);
-            const sy = std.math.sin(yaw * 0.5);
-            const cp = std.math.cos(pitch * 0.5);
-            const sp = std.math.sin(pitch * 0.5);
-            const cr = std.math.cos(roll * 0.5);
-            const sr = std.math.sin(roll * 0.5);
+        pub fn fromEuler(v: @Vector(3, T)) @This() {
+            const cy = @cos(v[1] * 0.5);
+            const sy = @sin(v[1] * 0.5);
+            const cp = @cos(v[0] * 0.5);
+            const sp = @sin(v[0] * 0.5);
+            const cr = @cos([2]*0.5);
+            const sr = @sin([2]*0.5);
 
             return .{
                 .w = cr * cp * cy + sr * sp * sy,
@@ -47,7 +43,7 @@ pub fn Quaternion(T: type) type {
         }
 
         /// Reference: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        pub fn toEuler(q: @This()) !@"3"(T) {
+        pub fn toEuler(q: @This()) !@Vector(3, T) {
             const sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
             const cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
             const roll = std.math.atan2(sinr_cosp, cosr_cosp);

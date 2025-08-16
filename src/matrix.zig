@@ -1,6 +1,4 @@
 const std = @import("std");
-const @"3" = @import("vector.zig").@"3";
-const @"4" = @import("vector.zig").@"4";
 
 pub fn @"4x4"(T: type) type {
     return struct {
@@ -35,7 +33,7 @@ pub fn @"4x4"(T: type) type {
             return .new(result_data);
         }
 
-        pub fn translate(v: @"3"(T)) @This() {
+        pub fn translate(v: @Vector(3, T)) @This() {
             var m: @This() = .identity(1);
             m.d[12] = v[0];
             m.d[13] = v[1];
@@ -43,7 +41,7 @@ pub fn @"4x4"(T: type) type {
             return m;
         }
 
-        pub fn scale(v: @"3"(T)) @This() {
+        pub fn scale(v: @Vector(3, T)) @This() {
             var m: @This() = .identity(1);
             m.d[0] = v[0];
             m.d[5] = v[1];
@@ -55,7 +53,7 @@ pub fn @"4x4"(T: type) type {
         /// Creates a 4×4 rotation matrix from an axis and angle (in radians),
         /// normalizing the axis internally. Follows the right-hand rule and
         /// returns the identity matrix if the axis length is zero.
-        pub fn rotate(angle_rad: T, v: @"3"(T)) @This() {
+        pub fn rotate(angle_rad: T, v: @Vector(3, T)) @This() {
             if (@typeInfo(T) != .float) @compileError("rotate() is only supported for floating-point types.");
             const cos = std.math.cos(angle_rad);
             const sin = std.math.sin(angle_rad);
@@ -136,7 +134,7 @@ pub fn @"4x4"(T: type) type {
         ///
         /// Returns:
         /// - A new vector representing `a × b`.
-        fn crossProduct3D(a: @"3"(f32), b: @"3"(f32)) @"3"(f32) {
+        fn crossProduct3D(a: @Vector(3, f32), b: @Vector(3, f32)) @Vector(3, f32) {
             return .new(.{
                 (a[1] * b[2]) - (a[2] * b[1]),
                 (a[2] * b[0]) - (a[0] * b[2]),
@@ -144,11 +142,11 @@ pub fn @"4x4"(T: type) type {
             });
         }
 
-        pub fn lookAt(eye: @"3"(f32), target: @"3"(f32), up: @"3"(f32)) @This() {
+        pub fn lookAt(eye: @Vector(3, f32), target: @Vector(3, f32), up: @Vector(3, f32)) @This() {
             if (@typeInfo(T) != .float) @compileError("lookAt() is only supported for floating-point types.");
             var m: @This() = .identity(1);
 
-            var z_axis = @"3"(f32){ target[0] - eye[0], target[1] - eye[1], target[2] - eye[2] };
+            var z_axis = @Vector(3, f32){ target[0] - eye[0], target[1] - eye[1], target[2] - eye[2] };
             const z_len_sq = z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2];
             const z_len = std.math.sqrt(z_len_sq);
             if (z_len == 0.0) return .identity(1);
@@ -235,7 +233,7 @@ pub fn @"4x4"(T: type) type {
             return .new(result_data);
         }
 
-        pub fn fromQuaternion(q: @"4"(T)) @This() {
+        pub fn fromQuaternion(q: @Vector(4, T)) @This() {
             var m: @This() = .identity(1);
 
             // Pre-calculate terms for efficiency
@@ -264,6 +262,40 @@ pub fn @"4x4"(T: type) type {
             m.d[10] = 1.0 - 2.0 * (x2 + y2); // m22
 
             return m;
+        }
+
+        pub fn toQuaternion(m: @This()) @Vector(4, T) {
+            var q: @Vector(4, T) = undefined;
+
+            const trace = m.d[0] + m.d[5] + m.d[10]; // sum of diagonal elements
+
+            if (trace > 0) {
+                const s = @sqrt(trace + 1.0) * 2.0;
+                q[3] = 0.25 * s; // w
+                q[0] = (m.d[9] - m.d[6]) / s; // x
+                q[1] = (m.d[2] - m.d[8]) / s; // y
+                q[2] = (m.d[4] - m.d[1]) / s; // z
+            } else if ((m.d[0] > m.d[5]) and (m.d[0] > m.d[10])) {
+                const s = @sqrt(1.0 + m.d[0] - m.d[5] - m.d[10]) * 2.0;
+                q[3] = (m.d[9] - m.d[6]) / s; // w
+                q[0] = 0.25 * s; // x
+                q[1] = (m.d[1] + m.d[4]) / s; // y
+                q[2] = (m.d[2] + m.d[8]) / s; // z
+            } else if (m.d[5] > m.d[10]) {
+                const s = @sqrt(1.0 + m.d[5] - m.d[0] - m.d[10]) * 2.0;
+                q[3] = (m.d[2] - m.d[8]) / s; // w
+                q[0] = (m.d[1] + m.d[4]) / s; // x
+                q[1] = 0.25 * s; // y
+                q[2] = (m.d[6] + m.d[9]) / s; // z
+            } else {
+                const s = @sqrt(1.0 + m.d[10] - m.d[0] - m.d[5]) * 2.0;
+                q[3] = (m.d[4] - m.d[1]) / s; // w
+                q[0] = (m.d[2] + m.d[8]) / s; // x
+                q[1] = (m.d[6] + m.d[9]) / s; // y
+                q[2] = 0.25 * s; // z
+            }
+
+            return q;
         }
     };
 }
