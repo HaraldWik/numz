@@ -15,3 +15,20 @@ pub fn Vec4(T: type) type {
 }
 
 pub const Mat4x4 = mat.@"4x4";
+
+pub fn Transform(T: type) type {
+    return struct {
+        position: Vec3(T) = @splat(0),
+        rotation: Vec3(T) = @splat(0),
+        scale: Vec3(T) = @splat(1),
+
+        pub fn toMat4x4(self: @This()) Mat4x4(T) {
+            return Mat4x4(T)
+                .translate(self.position)
+                .mul(.rotate(std.math.degreesToRadians(self.rotation[0]), .{ 1, 0, 0 }))
+                .mul(.rotate(std.math.degreesToRadians(self.rotation[1]), .{ 0, 1, 0 }))
+                .mul(.rotate(std.math.degreesToRadians(self.rotation[2]), .{ 0, 0, 2 }))
+                .mul(.scale(self.scale));
+        }
+    };
+}

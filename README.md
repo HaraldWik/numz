@@ -93,6 +93,14 @@ pub fn main() !void {
 
 > **Note:** The quaternions are under development, I do not recommend using this math library if you really need quaternion
 
+## Transform
+
+- 3D
+
+### Functions
+
+- toMat4x4
+
 ## Feature requests
 
 Feel free to make feature requests; I always want to what can be improved.
