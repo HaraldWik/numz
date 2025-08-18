@@ -54,7 +54,7 @@ pub fn @"4x4"(T: type) type {
         /// normalizing the axis internally. Follows the right-hand rule and
         /// returns the identity matrix if the axis length is zero.
         pub fn rotate(angle_rad: T, axis: @Vector(3, T)) @This() {
-            const v = axis;
+            var v = axis;
             if (@typeInfo(T) != .float) @compileError("rotate() is only supported for floating-point types.");
             const cos = std.math.cos(angle_rad);
             const sin = std.math.sin(angle_rad);
