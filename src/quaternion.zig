@@ -26,6 +26,10 @@ pub fn Quaternion(T: type) type {
             return .{ .x = -q.x, .y = -q.y, .z = -q.z, .w = q.w };
         }
 
+        pub fn toVec4(self: @This()) @Vector(4, T) {
+            return .{ self.x, self.y, self.z, self.w };
+        }
+
         pub fn fromEuler(v: @Vector(3, T)) @This() {
             const cy = @cos(v[1] * 0.5);
             const sy = @sin(v[1] * 0.5);

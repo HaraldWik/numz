@@ -135,19 +135,19 @@ pub fn @"4x4"(T: type) type {
         ///
         /// Returns:
         /// - A new vector representing `a × b`.
-        fn crossProduct3D(a: @Vector(3, f32), b: @Vector(3, f32)) @Vector(3, f32) {
-            return .new(.{
+        fn crossProduct3D(a: @Vector(3, T), b: @Vector(3, T)) @Vector(3, T) {
+            return .{
                 (a[1] * b[2]) - (a[2] * b[1]),
                 (a[2] * b[0]) - (a[0] * b[2]),
                 (a[0] * b[1]) - (a[1] * b[0]),
-            });
+            };
         }
 
-        pub fn lookAt(eye: @Vector(3, f32), target: @Vector(3, f32), up: @Vector(3, f32)) @This() {
+        pub fn lookAt(eye: @Vector(3, T), target: @Vector(3, T), up: @Vector(3, T)) @This() {
             if (@typeInfo(T) != .float) @compileError("lookAt() is only supported for floating-point types.");
             var m: @This() = .identity(1);
 
-            var z_axis = @Vector(3, f32){ target[0] - eye[0], target[1] - eye[1], target[2] - eye[2] };
+            var z_axis = @Vector(3, T){ target[0] - eye[0], target[1] - eye[1], target[2] - eye[2] };
             const z_len_sq = z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2];
             const z_len = std.math.sqrt(z_len_sq);
             if (z_len == 0.0) return .identity(1);
@@ -180,9 +180,9 @@ pub fn @"4x4"(T: type) type {
             m.d[10] = z_axis[2];
             m.d[11] = 0.0;
 
-            m.d[12] = -(x_axis[0] * eye.d[0] + x_axis[1] * eye.d[1] + x_axis[2] * eye.d[2]);
-            m.d[13] = -(y_axis[0] * eye.d[0] + y_axis[1] * eye.d[1] + y_axis[2] * eye.d[2]);
-            m.d[14] = -(z_axis[0] * eye.d[0] + z_axis[1] * eye.d[1] + z_axis[2] * eye.d[2]);
+            m.d[12] = -(x_axis[0] * eye[0] + x_axis[1] * eye[1] + x_axis[2] * eye[2]);
+            m.d[13] = -(y_axis[0] * eye[0] + y_axis[1] * eye[1] + y_axis[2] * eye[2]);
+            m.d[14] = -(z_axis[0] * eye[0] + z_axis[1] * eye[1] + z_axis[2] * eye[2]);
             m.d[15] = 1.0;
             return m;
         }
