@@ -129,7 +129,7 @@ pub fn main() !void {
 
 ## Feature requests
 
-Feel free to make feature requests; I always want to what can be improved.
+Feel free to make feature requests; I always want to know what can be improved.
 
 But I won’t create hyper-specific features, nor will I implement algorithms.
 
