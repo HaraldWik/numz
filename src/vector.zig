@@ -67,9 +67,9 @@ pub fn dot(a: anytype, b: @TypeOf(a)) @TypeOf(a[0]) {
 }
 
 pub fn cross(a: anytype, b: @TypeOf(a)) @TypeOf(a) {
-    const len, const T = info(@TypeOf(a));
+    const len, _ = info(@TypeOf(a));
     if (len != 3) @compileError("cross() only supports vec3");
-    return [_]T{
+    return .{
         a[1] * b[2] - a[2] * b[1],
         a[2] * b[0] - a[0] * b[2],
         a[0] * b[1] - a[1] * b[0],
@@ -114,6 +114,9 @@ pub inline fn forward(from: anytype, to: anytype) @TypeOf(from) {
 }
 
 pub fn forwardFromEuler(rotation: anytype) @TypeOf(rotation) {
+    const len, _ = info(@TypeOf(rotation));
+    if (len != 3) @compileError("forwardFromEuler() only supports vec3");
+
     const cy = @cos(rotation[0]);
     const sy = @sin(rotation[0]);
     const cp = @cos(rotation[1]);
