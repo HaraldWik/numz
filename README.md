@@ -96,6 +96,7 @@ pub fn main() !void {
 ## Transform
 
 - 3D
+- 2D
 
 ### Functions
 

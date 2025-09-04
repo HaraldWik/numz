@@ -18,7 +18,7 @@ pub fn Vec4(T: type) type {
 /// Column mayor
 pub const Mat4x4 = mat.@"4x4";
 
-pub fn Transform(T: type) type {
+pub fn Transform3D(T: type) type {
     return struct {
         position: Vec3(T) = @splat(0),
         rotation: Vec3(T) = @splat(0),
@@ -29,8 +29,23 @@ pub fn Transform(T: type) type {
                 .translate(self.position)
                 .mul(.rotate(std.math.degreesToRadians(self.rotation[0]), .{ 1, 0, 0 }))
                 .mul(.rotate(std.math.degreesToRadians(self.rotation[1]), .{ 0, 1, 0 }))
-                .mul(.rotate(std.math.degreesToRadians(self.rotation[2]), .{ 0, 0, 2 }))
+                .mul(.rotate(std.math.degreesToRadians(self.rotation[2]), .{ 0, 0, 1 }))
                 .mul(.scale(self.scale));
+        }
+    };
+}
+
+pub fn Transform2D(T: type) type {
+    return struct {
+        position: Vec2(T) = @splat(0),
+        rotation: T = 0.0,
+        scale: T = 1.0,
+
+        pub fn toMat4x4(self: @This()) Mat4x4(T) {
+            return Mat4x4(T)
+                .translate(.{ self.position[0], self.position[1], 0.0 })
+                .mul(.rotate(std.math.degreesToRadians(self.rotation), .{ 1, 0, 1 }))
+                .mul(.scale(@splat(self.scale)));
         }
     };
 }
