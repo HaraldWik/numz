@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const vec = @import("vector.zig");
 pub const mat = @import("matrix.zig");
+pub const color = @import("color.zig");
 pub const Quaternion = @import("quaternion.zig").Quaternion;
 
 pub fn Vec2(T: type) type {
@@ -14,6 +15,7 @@ pub fn Vec4(T: type) type {
     return @Vector(4, T);
 }
 
+/// Column mayor
 pub const Mat4x4 = mat.@"4x4";
 
 pub fn Transform(T: type) type {

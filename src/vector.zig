@@ -146,6 +146,7 @@ test "scale" {
     try std.testing.expect(eql(scale(v3, s), .{ 3, 6, 9 }));
     try std.testing.expect(eql(scale(v4, s), .{ 3, 6, 9, 12 }));
 }
+
 test "dot" {
     const a2: @Vector(2, f32) = .{ 1, 2 };
     const b2: @Vector(2, f32) = .{ 3, 4 };

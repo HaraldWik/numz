@@ -101,6 +101,32 @@ pub fn main() !void {
 
 - toMat4x4
 
+## Colors
+
+- Rgb
+- Rgba
+
+### Functions
+
+- new
+- eql
+- alpha
+- fromVec
+- toVec
+- fromHex
+- castFrom
+
+### Constants
+
+- len
+- max
+- min
+- white
+- black
+- red
+- green
+- blue
+
 ## Feature requests
 
 Feel free to make feature requests; I always want to what can be improved.
