@@ -112,10 +112,12 @@ pub fn main() !void {
 - new
 - eql
 - alpha
+- from
+- to
 - fromVec
 - toVec
 - fromHex
-- castFrom
+- toU32
 
 ### Constants
 

@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub fn Rgb(T: type) type {
+    const Color = Rgb;
     return struct {
         r: T,
         g: T,
@@ -38,24 +39,7 @@ pub fn Rgb(T: type) type {
             return .{ .r = self.r, .g = self.g, .b = self.b, .a = Rgba(T).max };
         }
 
-        pub inline fn fromVec(vec: @Vector(len, T)) @This() {
-            return .{ .r = vec[0], .g = vec[1], .b = vec[2] };
-        }
-
-        pub inline fn toVec(self: @This()) @Vector(len, T) {
-            return .{ self.r, self.g, self.b };
-        }
-
-        pub fn fromHex(str: []const u8) !@This() {
-            if (str.len != len * 2) return error.InvalidHexLen;
-            const r = try std.fmt.parseInt(u8, str[0..2], 16);
-            const g = try std.fmt.parseInt(u8, str[2..4], 16);
-            const b = try std.fmt.parseInt(u8, str[4..6], 16);
-
-            return .castFrom(u8, .{ .r = r, .g = g, .b = b });
-        }
-
-        pub fn castFrom(comptime J: type, color: Rgb(J)) @This() {
+        pub fn from(comptime J: type, color: Color(J)) @This() {
             return switch (@typeInfo(T)) {
                 .int => switch (@typeInfo(J)) {
                     .int => .{
@@ -86,10 +70,37 @@ pub fn Rgb(T: type) type {
                 else => unreachable,
             };
         }
+
+        pub inline fn to(self: @This(), comptime J: type) Color(J) {
+            return .from(f32, self);
+        }
+
+        pub inline fn fromVec(vec: @Vector(len, T)) @This() {
+            return .{ .r = vec[0], .g = vec[1], .b = vec[2] };
+        }
+
+        pub inline fn toVec(self: @This()) @Vector(len, T) {
+            return .{ self.r, self.g, self.b };
+        }
+
+        pub fn fromHex(str: []const u8) !@This() {
+            if (str.len != len * 2) return error.InvalidHexLen;
+            const r = try std.fmt.parseInt(u8, str[0..2], 16);
+            const g = try std.fmt.parseInt(u8, str[2..4], 16);
+            const b = try std.fmt.parseInt(u8, str[4..6], 16);
+
+            return .from(u8, .{ .r = r, .g = g, .b = b });
+        }
+
+        pub fn toU32(self: @This()) u32 {
+            const color: Color(u8) = self.to(u8);
+            return (@as(u32, color.r) << 24) | (@as(u32, color.g) << 16) | (@as(u32, color.b) << 8) | 0xFF;
+        }
     };
 }
 
 pub fn Rgba(T: type) type {
+    const Color = Rgba;
     return struct {
         r: T,
         g: T,
@@ -128,25 +139,7 @@ pub fn Rgba(T: type) type {
             return .{ .r = self.r, .g = self.g, .b = self.b };
         }
 
-        pub inline fn fromVec(vec: @Vector(len, T)) @This() {
-            return .{ .r = vec[0], .g = vec[1], .b = vec[2], .a = vec[3] };
-        }
-
-        pub inline fn toVec(self: @This()) @Vector(len, T) {
-            return .{ self.r, self.g, self.b, self.a };
-        }
-
-        pub fn fromHex(str: []const u8) !@This() {
-            if (str.len != len * 2) return error.InvalidHexLen;
-            const r = try std.fmt.parseInt(u8, str[0..2], 16);
-            const g = try std.fmt.parseInt(u8, str[2..4], 16);
-            const b = try std.fmt.parseInt(u8, str[4..6], 16);
-            const a = try std.fmt.parseInt(u8, str[6..8], 16);
-
-            return .castFrom(u8, .{ .r = r, .g = g, .b = b, .a = a });
-        }
-
-        pub fn castFrom(comptime J: type, color: Rgba(J)) @This() {
+        pub fn from(comptime J: type, color: Color(J)) @This() {
             return switch (@typeInfo(T)) {
                 .int => switch (@typeInfo(J)) {
                     .int => .{
@@ -181,6 +174,33 @@ pub fn Rgba(T: type) type {
                 else => unreachable,
             };
         }
+
+        pub inline fn to(self: @This(), comptime J: type) Color(J) {
+            return .from(T, self);
+        }
+
+        pub inline fn fromVec(vec: @Vector(len, T)) @This() {
+            return .{ .r = vec[0], .g = vec[1], .b = vec[2], .a = vec[3] };
+        }
+
+        pub inline fn toVec(self: @This()) @Vector(len, T) {
+            return .{ self.r, self.g, self.b, self.a };
+        }
+
+        pub fn fromHex(str: []const u8) !@This() {
+            if (str.len != len * 2) return error.InvalidHexLen;
+            const r = try std.fmt.parseInt(u8, str[0..2], 16);
+            const g = try std.fmt.parseInt(u8, str[2..4], 16);
+            const b = try std.fmt.parseInt(u8, str[4..6], 16);
+            const a = try std.fmt.parseInt(u8, str[6..8], 16);
+
+            return .from(u8, .{ .r = r, .g = g, .b = b, .a = a });
+        }
+
+        pub fn toU32(self: @This()) u32 {
+            const color: Color(u8) = self.to(u8);
+            return (@as(u32, color.r) << 24) | (@as(u32, color.g) << 16) | (@as(u32, color.b) << 8) | @as(u32, color.a);
+        }
     };
 }
 
@@ -200,6 +220,32 @@ test "alpha" {
     try std.testing.expect(rgba.eql(rgb.alpha()));
 }
 
+test "from" {
+    const rgba_u8: Rgba(u8) = .green;
+    const rgb_u8: Rgba(u8) = .green;
+
+    const rgba_f32: Rgba(f32) = .green;
+    const rgb_f32: Rgba(f32) = .green;
+
+    try std.testing.expect(rgb_u8.eql(.from(u8, rgb_u8)));
+    try std.testing.expect(rgba_f32.eql(.from(u8, rgba_u8)));
+    try std.testing.expect(rgb_f32.eql(.from(u8, rgb_u8)));
+}
+
+test "to" {
+    const rgba_f32: Rgba(f32) = .white;
+    const rgb_f32: Rgba(f32) = .white;
+
+    const rgba_u8: Rgba(u8) = .white;
+    const rgb_u8: Rgba(u8) = .white;
+
+    try std.testing.expect(@TypeOf(rgba_f32.to(u8)) == @TypeOf(rgba_u8));
+    try std.testing.expect(@TypeOf(rgb_f32.to(u8)) == @TypeOf(rgb_u8));
+
+    try std.testing.expect(@TypeOf(rgba_u8.to(f32)) == @TypeOf(rgba_f32));
+    try std.testing.expect(@TypeOf(rgb_u8.to(f32)) == @TypeOf(rgb_f32));
+}
+
 test "fromHex" {
     const rgba: Rgba(f32) = try .fromHex("FF0000FF");
     const rgb: Rgb(f32) = try .fromHex("FF0000");
@@ -208,14 +254,10 @@ test "fromHex" {
     try std.testing.expect(rgb.eql(.red));
 }
 
-test "castFrom" {
-    const rgba_u8: Rgba(u8) = .green;
-    const rgb_u8: Rgba(u8) = .green;
+test "tou32" {
+    const rgba_f32: Rgba(f32) = .white;
+    const rgb_f32: Rgba(f32) = .black;
 
-    const rgba_f32: Rgba(f32) = .green;
-    const rgb_f32: Rgba(f32) = .green;
-
-    try std.testing.expect(rgb_u8.eql(.castFrom(u8, rgb_u8)));
-    try std.testing.expect(rgba_f32.eql(.castFrom(u8, rgba_u8)));
-    try std.testing.expect(rgb_f32.eql(.castFrom(u8, rgb_u8)));
+    try std.testing.expect(rgba_f32.toU32() == 0xFFFFFFFF);
+    try std.testing.expect(rgb_f32.toU32() == 0x000000FF);
 }
