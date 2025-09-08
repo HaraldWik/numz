@@ -254,7 +254,7 @@ test "fromHex" {
     try std.testing.expect(rgb.eql(.red));
 }
 
-test "tou32" {
+test "toU32" {
     const rgba_f32: Rgba(f32) = .white;
     const rgb_f32: Rgb(f32) = .black;
 
