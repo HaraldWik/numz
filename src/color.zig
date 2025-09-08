@@ -256,7 +256,7 @@ test "fromHex" {
 
 test "tou32" {
     const rgba_f32: Rgba(f32) = .white;
-    const rgb_f32: Rgba(f32) = .black;
+    const rgb_f32: Rgb(f32) = .black;
 
     try std.testing.expect(rgba_f32.toU32() == 0xFFFFFFFF);
     try std.testing.expect(rgb_f32.toU32() == 0x000000FF);
