@@ -4,19 +4,15 @@ pub fn @"4x4"(T: type) type {
     return struct {
         d: [16]T,
 
+        pub const identity: @This() = .new(&.{
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+        });
+
         pub fn new(data: [16]T) @This() {
             return .{ .d = data };
-        }
-
-        pub fn identity(diagonal: T) @This() {
-            const zero = std.mem.zeroes(T);
-
-            return .new(.{
-                diagonal, zero,     zero,     zero,
-                zero,     diagonal, zero,     zero,
-                zero,     zero,     diagonal, zero,
-                zero,     zero,     zero,     diagonal,
-            });
         }
 
         pub fn mul(m1: @This(), m2: @This()) @This() {
@@ -241,25 +237,25 @@ pub fn @"4x4"(T: type) type {
             const x2 = q[0] * q[0];
             const y2 = q[1] * q[1];
             const z2 = q[2] * q[2];
-            const _xy = q[0] * q[1];
-            const _xz = q[0] * q[2];
-            const _yz = q[1] * q[2];
-            const _wx = q[3] * q[0];
-            const _wy = q[3] * q[1];
-            const _wz = q[3] * q[2];
+            const xy = q[0] * q[1];
+            const xz = q[0] * q[2];
+            const yz = q[1] * q[2];
+            const wx = q[3] * q[0];
+            const wy = q[3] * q[1];
+            const wz = q[3] * q[2];
 
             // Column 0
             m.d[0] = 1.0 - 2.0 * (y2 + z2); // m00
-            m.d[1] = 2.0 * (_xy + _wz); // m10
-            m.d[2] = 2.0 * (_xy - _wy); // m20
+            m.d[1] = 2.0 * (xy + wz); // m10
+            m.d[2] = 2.0 * (xy - wy); // m20
 
             // Column 1
-            m.d[4] = 2.0 * (_xy - _wz); // m01
+            m.d[4] = 2.0 * (xy - wz); // m01
             m.d[5] = 1.0 - 2.0 * (x2 + z2); // m11
-            m.d[6] = 2.0 * (_yz + _wx); // m21
+            m.d[6] = 2.0 * (yz + wx); // m21
 
-            m.d[8] = 2.0 * (_xz + _wy); // m02
-            m.d[9] = 2.0 * (_yz - _wx); // m12
+            m.d[8] = 2.0 * (xz + wy); // m02
+            m.d[9] = 2.0 * (yz - wx); // m12
             m.d[10] = 1.0 - 2.0 * (x2 + y2); // m22
 
             return m;
@@ -302,8 +298,8 @@ pub fn @"4x4"(T: type) type {
 }
 
 test "Mat4" {
-    _ = @"4x4"(f32).identity(1.0);
-    _ = @"4x4"(f32).mul(.identity(1.0), .identity(1.0));
+    _ = @"4x4"(f32).identity;
+    _ = @"4x4"(f32).mul(.identity, .identity);
     _ = @"4x4"(f32).translate(.{ 1, 2, 3 });
     _ = @"4x4"(f32).scale(.{ 1, 2, 3 });
     _ = @"4x4"(f32).rotate(std.math.degreesToRadians(90), .{ 1, 2, 3 });
