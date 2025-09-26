@@ -4,7 +4,7 @@ pub fn @"4x4"(T: type) type {
     return struct {
         d: [16]T,
 
-        pub const identity: @This() = .new(&.{
+        pub const identity: @This() = .new(.{
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
@@ -30,7 +30,7 @@ pub fn @"4x4"(T: type) type {
         }
 
         pub fn translate(v: @Vector(3, T)) @This() {
-            var m: @This() = .identity(1);
+            var m: @This() = .identity;
             m.d[12] = v[0];
             m.d[13] = v[1];
             m.d[14] = v[2];
@@ -38,7 +38,7 @@ pub fn @"4x4"(T: type) type {
         }
 
         pub fn scale(v: @Vector(3, T)) @This() {
-            var m: @This() = .identity(1);
+            var m: @This() = .identity;
             m.d[0] = v[0];
             m.d[5] = v[1];
             m.d[10] = v[2];
@@ -58,7 +58,7 @@ pub fn @"4x4"(T: type) type {
 
             const axis_len_sq = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
             const axis_len = std.math.sqrt(axis_len_sq);
-            if (axis_len == 0.0) return @This().identity(1);
+            if (axis_len == 0.0) return @This().identity;
 
             v[0] /= axis_len;
             v[1] /= axis_len;
@@ -141,12 +141,12 @@ pub fn @"4x4"(T: type) type {
 
         pub fn lookAt(eye: @Vector(3, T), target: @Vector(3, T), up: @Vector(3, T)) @This() {
             if (@typeInfo(T) != .float) @compileError("lookAt() is only supported for floating-point types.");
-            var m: @This() = .identity(1);
+            var m: @This() = .identity;
 
             var z_axis = @Vector(3, T){ target[0] - eye[0], target[1] - eye[1], target[2] - eye[2] };
             const z_len_sq = z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2];
             const z_len = std.math.sqrt(z_len_sq);
-            if (z_len == 0.0) return .identity(1);
+            if (z_len == 0.0) return .identity;
             z_axis[0] /= z_len;
             z_axis[1] /= z_len;
             z_axis[2] /= z_len;
@@ -154,7 +154,7 @@ pub fn @"4x4"(T: type) type {
             var x_axis = crossProduct3D(up, z_axis);
             const x_len_sq = x_axis[0] * x_axis[0] + x_axis[1] * x_axis[1] + x_axis[2] * x_axis[2];
             const x_len = std.math.sqrt(x_len_sq);
-            if (x_len == 0.0) return .identity(1);
+            if (x_len == 0.0) return .identity;
             x_axis[0] /= x_len;
             x_axis[1] /= x_len;
             x_axis[2] /= x_len;
@@ -220,7 +220,7 @@ pub fn @"4x4"(T: type) type {
 
             const det = m.d[0] * inv[0] + m.d[1] * inv[4] + m.d[2] * inv[8] + m.d[3] * inv[12];
 
-            if (det == 0) return .identity(1);
+            if (det == 0) return .identity;
 
             const inv_det = 1.0 / det;
             var result_data: [16]T = undefined;
@@ -231,7 +231,7 @@ pub fn @"4x4"(T: type) type {
         }
 
         pub fn fromQuaternion(q: @Vector(4, T)) @This() {
-            var m: @This() = .identity(1);
+            var m: @This() = .identity;
 
             // Pre-calculate terms for efficiency
             const x2 = q[0] * q[0];
