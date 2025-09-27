@@ -39,13 +39,13 @@ pub fn Transform2D(T: type) type {
     return struct {
         position: Vec2(T) = @splat(0),
         rotation: T = 0.0,
-        scale: T = 1.0,
+        scale: Vec2(T) = 1.0,
 
         pub fn toMat4x4(self: @This()) Mat4x4(T) {
             return Mat4x4(T)
                 .translate(.{ self.position[0], self.position[1], 0.0 })
                 .mul(.rotate(std.math.degreesToRadians(self.rotation), .{ 1, 0, 1 }))
-                .mul(.scale(@splat(self.scale)));
+                .mul(.scale(.{ self.scale[0], self.scale[1], 1 }));
         }
     };
 }
