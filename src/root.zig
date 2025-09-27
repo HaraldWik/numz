@@ -38,8 +38,8 @@ pub fn Transform3D(T: type) type {
 pub fn Transform2D(T: type) type {
     return struct {
         position: Vec2(T) = @splat(0),
-        rotation: T = 0.0,
-        scale: Vec2(T) = 1.0,
+        rotation: T = 0,
+        scale: Vec2(T) = @splat(1),
 
         pub fn toMat4x4(self: @This()) Mat4x4(T) {
             return Mat4x4(T)
