@@ -1,42 +1,50 @@
 const std = @import("std");
+const vec = @import("vector.zig");
 
-pub fn Quaternion(T: type) type {
-    struct {
+/// Quaternion using Hamiltonian (w-first) convention
+pub fn Hamiltonian(T: type) type {
+    return struct {
+        w: T,
         x: T,
         y: T,
         z: T,
-        w: T,
 
         pub const identity: @This() = .{ .x = 0, .y = 0, .z = 0, .w = 1 };
 
-        pub fn new(x: T, y: T, z: T, w: T) @This() {
-            return .{ .x = x, .y = y, .z = z, .w = w };
+        pub fn new(w: T, x: T, y: T, z: T) @This() {
+            return .{ .w = w, .x = x, .y = y, .z = z };
         }
 
         pub fn mul(a: @This(), b: @This()) @This() {
             return .{
-                .w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
                 .x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
                 .y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
                 .z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
+                .w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
             };
         }
 
         pub fn conjugate(q: @This()) @This() {
-            return .{ .x = -q.x, .y = -q.y, .z = -q.z, .w = q.w };
+            return .{ .w = q.w, .x = -q.x, .y = -q.y, .z = -q.z };
         }
 
-        pub fn toVec4(self: @This()) @Vector(4, T) {
-            return .{ self.x, self.y, self.z, self.w };
+        pub fn fromVec(v: @Vector(4, T)) @This() {
+            return .{ .w = v[0], .x = v[1], .y = v[2], .z = v[3] };
         }
 
-        pub fn fromEuler(v: @Vector(3, T)) @This() {
-            const cy = @cos(v[1] * 0.5);
-            const sy = @sin(v[1] * 0.5);
-            const cp = @cos(v[0] * 0.5);
-            const sp = @sin(v[0] * 0.5);
-            const cr = @cos([2]*0.5);
-            const sr = @sin([2]*0.5);
+        pub fn toVec(self: @This()) @Vector(4, T) {
+            return .{ self.w, self.x, self.y, self.z };
+        }
+
+        pub fn fromEuler(euler: @Vector(3, T)) @This() {
+            const pitch, const yaw, const roll = euler;
+
+            const cy = @cos(yaw * 0.5);
+            const sy = @sin(yaw * 0.5);
+            const cp = @cos(pitch * 0.5);
+            const sp = @sin(pitch * 0.5);
+            const cr = @cos(roll * 0.5);
+            const sr = @sin(roll * 0.5);
 
             return .{
                 .w = cr * cp * cy + sr * sp * sy,
@@ -53,7 +61,7 @@ pub fn Quaternion(T: type) type {
             const roll = std.math.atan2(sinr_cosp, cosr_cosp);
 
             const sinp = 2.0 * (q.w * q.y - q.z * q.x);
-            const pitch: f32 = if (std.math.abs(sinp) >= 1.0)
+            const pitch: f32 = if (@abs(sinp) >= 1.0)
                 std.math.copysign(@floatCast(std.math.pi / 2), sinp)
             else
                 std.math.asin(sinp);
@@ -65,4 +73,10 @@ pub fn Quaternion(T: type) type {
             return .{ pitch, yaw, roll };
         }
     };
+}
+
+test Hamiltonian {
+    const euler: @Vector(3, f32) = .{ 0, 270, 360 };
+    const quat: Hamiltonian(f32) = .fromEuler(euler);
+    try std.testing.expect(vec.eql(quat.toEuler(), euler));
 }

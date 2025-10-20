@@ -3,7 +3,7 @@ const std = @import("std");
 pub const vec = @import("vector.zig");
 pub const mat = @import("matrix.zig");
 pub const color = @import("color.zig");
-pub const Quaternion = @import("quaternion.zig").Quaternion;
+pub const quat = @import("quaternion.zig");
 
 pub fn Vec2(T: type) type {
     return @Vector(2, T);

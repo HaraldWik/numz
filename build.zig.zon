@@ -1,7 +1,7 @@
 .{
     .name = .numz,
     .version = "0.0.2",
-    .minimum_zig_version = "0.16.0-dev.70+73a0b5441",
+    .minimum_zig_version = "0.16.0-dev.253+4314c9653",
     .fingerprint = 0xc804785f9b06eb57,
     .dependencies = .{},
     .paths = .{

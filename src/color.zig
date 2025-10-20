@@ -24,6 +24,7 @@ pub fn Rgb(T: type) type {
         pub const red: @This() = .new(max, min, min);
         pub const green: @This() = .new(min, max, min);
         pub const blue: @This() = .new(min, min, max);
+        pub const yellow: @This() = .new(max, max, min);
 
         pub inline fn new(r: f32, g: f32, b: f32) @This() {
             return .{ .r = r, .g = g, .b = b };
@@ -124,6 +125,7 @@ pub fn Rgba(T: type) type {
         pub const red: @This() = .new(max, min, min, max);
         pub const green: @This() = .new(min, max, min, max);
         pub const blue: @This() = .new(min, min, max, max);
+        pub const yellow: @This() = .new(max, max, min, max);
 
         pub inline fn new(r: f32, g: f32, b: f32, a: f32) @This() {
             return .{ .r = r, .g = g, .b = b, .a = a };

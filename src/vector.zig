@@ -4,7 +4,7 @@ fn info(v: type) struct { usize, type } {
     return switch (@typeInfo(v)) {
         .vector => |i| .{ i.len, i.child },
         .array => |i| .{ i.len, i.child },
-        else => @compileError("type must be of typeof vector or array"),
+        else => |T| @compileError("must be of type of vector or array and not type of '" ++ @tagName(T) ++ "'"),
     };
 }
 

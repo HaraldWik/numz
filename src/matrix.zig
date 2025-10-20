@@ -1,4 +1,5 @@
 const std = @import("std");
+const Hamiltonian = @import("quaternion.zig").Hamiltonian;
 
 pub fn @"4x4"(T: type) type {
     return struct {
@@ -261,7 +262,7 @@ pub fn @"4x4"(T: type) type {
             return m;
         }
 
-        pub fn toQuaternion(m: @This()) @Vector(4, T) {
+        pub fn toQuaternion(m: @This()) Hamiltonian(T) {
             var q: @Vector(4, T) = undefined;
 
             const trace = m.d[0] + m.d[5] + m.d[10]; // sum of diagonal elements
@@ -292,15 +293,16 @@ pub fn @"4x4"(T: type) type {
                 q[2] = 0.25 * s; // z
             }
 
-            return q;
+            return .fromVec(q);
         }
     };
 }
 
-test "Mat4" {
+test @"4x4" {
     _ = @"4x4"(f32).identity;
     _ = @"4x4"(f32).mul(.identity, .identity);
     _ = @"4x4"(f32).translate(.{ 1, 2, 3 });
     _ = @"4x4"(f32).scale(.{ 1, 2, 3 });
     _ = @"4x4"(f32).rotate(std.math.degreesToRadians(90), .{ 1, 2, 3 });
+    _ = @"4x4"(f32).identity.toQuaternion();
 }
