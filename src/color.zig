@@ -18,8 +18,15 @@ pub fn Rgb(T: type) type {
             .float => 0.0,
             else => unreachable,
         };
+        pub const half: T = switch (@typeInfo(T)) {
+            .int => @divTrunc(std.math.minInt(T), 2),
+            .float => 0.5,
+            else => unreachable,
+        };
 
+        pub const transparent: @This() = std.mem.zeroes(@This());
         pub const white: @This() = .new(max, max, max);
+        pub const grey: @This() = .new(half, half, half);
         pub const black: @This() = .new(min, min, min);
         pub const red: @This() = .new(max, min, min);
         pub const green: @This() = .new(min, max, min);
@@ -119,8 +126,15 @@ pub fn Rgba(T: type) type {
             .float => 0.0,
             else => unreachable,
         };
+        pub const half: T = switch (@typeInfo(T)) {
+            .int => @divTrunc(std.math.minInt(T), 2),
+            .float => 0.5,
+            else => unreachable,
+        };
 
+        pub const transparent: @This() = std.mem.zeroes(@This());
         pub const white: @This() = .new(max, max, max, max);
+        pub const grey: @This() = .new(half, half, half, max);
         pub const black: @This() = .new(min, min, min, max);
         pub const red: @This() = .new(max, min, min, max);
         pub const green: @This() = .new(min, max, min, max);
@@ -235,11 +249,11 @@ test "from" {
 }
 
 test "to" {
-    const rgba_f32: Rgba(f32) = .white;
-    const rgb_f32: Rgba(f32) = .white;
+    const rgba_f32: Rgba(f32) = .grey;
+    const rgb_f32: Rgba(f32) = .grey;
 
-    const rgba_u8: Rgba(u8) = .white;
-    const rgb_u8: Rgba(u8) = .white;
+    const rgba_u8: Rgba(u8) = .grey;
+    const rgb_u8: Rgba(u8) = .grey;
 
     try std.testing.expect(@TypeOf(rgba_f32.to(u8)) == @TypeOf(rgba_u8));
     try std.testing.expect(@TypeOf(rgb_f32.to(u8)) == @TypeOf(rgb_u8));
