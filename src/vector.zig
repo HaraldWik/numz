@@ -114,18 +114,18 @@ pub inline fn forward(from: anytype, to: anytype) @TypeOf(from) {
 }
 
 pub fn forwardFromEuler(rotation: anytype) @TypeOf(rotation) {
-    const len, const T = info(@TypeOf(rotation));
-    if (len != 3) @compileError("forwardFromEuler() only supports vec3");
+    const pitch = rotation[0];
+    const yaw = rotation[1];
 
-    const cy = @cos(rotation[0]);
-    const sy = @sin(rotation[0]);
-    const cp = @cos(rotation[1]);
-    const sp = @sin(rotation[1]);
+    const cp = @cos(pitch);
+    const sp = @sin(pitch);
+    const cy = @cos(yaw);
+    const sy = @sin(yaw);
 
-    return normalize(@Vector(3, T){
+    return normalize(@Vector(3, f32){
         cy * cp,
         sp,
-        sy * cp,
+        -sy * cp, // IMPORTANT: negative for -Z forward
     });
 }
 
