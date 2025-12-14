@@ -113,20 +113,16 @@ pub inline fn forward(from: anytype, to: anytype) @TypeOf(from) {
     return normalize(to - from);
 }
 
-pub fn forwardFromEuler(rotation: anytype) @TypeOf(rotation) {
-    const pitch = rotation[0];
-    const yaw = rotation[1];
+pub fn forwardFromEuler(rot: @Vector(3, f32)) @Vector(3, f32) {
+    const pitch = rot[0] * std.math.deg_per_rad;
+    const yaw = rot[1] * std.math.deg_per_rad;
 
     const cp = @cos(pitch);
     const sp = @sin(pitch);
     const cy = @cos(yaw);
     const sy = @sin(yaw);
 
-    return normalize(@Vector(3, f32){
-        cy * cp,
-        sp,
-        -sy * cp, // IMPORTANT: negative for -Z forward
-    });
+    return normalize(@Vector(3, f32){ cy * cp, sp, -sy * cp });
 }
 
 // test "swizzle functions" {

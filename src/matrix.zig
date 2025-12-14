@@ -142,19 +142,17 @@ pub fn @"4x4"(T: type) type {
 
         pub fn lookAt(eye: @Vector(3, T), target: @Vector(3, T), up: @Vector(3, T)) @This() {
             if (@typeInfo(T) != .float) @compileError("lookAt() is only supported for floating-point types.");
-            var m: @This() = .identity;
 
-            var z_axis = @Vector(3, T){ target[0] - eye[0], target[1] - eye[1], target[2] - eye[2] };
-            const z_len_sq = z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2];
-            const z_len = std.math.sqrt(z_len_sq);
+            // camera z is eye - target (pointing toward camera)
+            var z_axis = @Vector(3, T){ eye[0] - target[0], eye[1] - target[1], eye[2] - target[2] };
+            const z_len = std.math.sqrt(z_axis[0] * z_axis[0] + z_axis[1] * z_axis[1] + z_axis[2] * z_axis[2]);
             if (z_len == 0.0) return .identity;
             z_axis[0] /= z_len;
             z_axis[1] /= z_len;
             z_axis[2] /= z_len;
 
             var x_axis = crossProduct3D(up, z_axis);
-            const x_len_sq = x_axis[0] * x_axis[0] + x_axis[1] * x_axis[1] + x_axis[2] * x_axis[2];
-            const x_len = std.math.sqrt(x_len_sq);
+            const x_len = std.math.sqrt(x_axis[0] * x_axis[0] + x_axis[1] * x_axis[1] + x_axis[2] * x_axis[2]);
             if (x_len == 0.0) return .identity;
             x_axis[0] /= x_len;
             x_axis[1] /= x_len;
@@ -162,26 +160,12 @@ pub fn @"4x4"(T: type) type {
 
             const y_axis = crossProduct3D(z_axis, x_axis);
 
-            m.d[0] = x_axis[0];
-            m.d[1] = y_axis[0];
-            m.d[2] = z_axis[0];
-            m.d[3] = 0.0;
-
-            m.d[4] = x_axis[1];
-            m.d[5] = y_axis[1];
-            m.d[6] = z_axis[1];
-            m.d[7] = 0.0;
-
-            m.d[8] = x_axis[2];
-            m.d[9] = y_axis[2];
-            m.d[10] = z_axis[2];
-            m.d[11] = 0.0;
-
-            m.d[12] = -(x_axis[0] * eye[0] + x_axis[1] * eye[1] + x_axis[2] * eye[2]);
-            m.d[13] = -(y_axis[0] * eye[0] + y_axis[1] * eye[1] + y_axis[2] * eye[2]);
-            m.d[14] = -(z_axis[0] * eye[0] + z_axis[1] * eye[1] + z_axis[2] * eye[2]);
-            m.d[15] = 1.0;
-            return m;
+            return .new(.{
+                x_axis[0],                                                       y_axis[0],                                                       z_axis[0],                                                       0, 0,
+                x_axis[1],                                                       y_axis[1],                                                       z_axis[1],                                                       0, 0,
+                x_axis[2],                                                       y_axis[2],                                                       z_axis[2],                                                       0, 0,
+                -(x_axis[0] * eye[0] + x_axis[1] * eye[1] + x_axis[2] * eye[2]), -(y_axis[0] * eye[0] + y_axis[1] * eye[1] + y_axis[2] * eye[2]), -(z_axis[0] * eye[0] + z_axis[1] * eye[1] + z_axis[2] * eye[2]), 1,
+            });
         }
 
         pub fn transpose(m: @This()) @This() {
@@ -294,6 +278,42 @@ pub fn @"4x4"(T: type) type {
             }
 
             return .fromVec(q);
+        }
+
+        pub fn vecPosition(self: @This()) @Vector(3, T) {
+            return .{ self.d[12], self.d[13], self.d[14] };
+        }
+
+        // TODO: Clean up this garbage
+        pub fn vecRotation(self: @This()) @Vector(3, T) {
+            var euler: @Vector(3, T) = .{ 0, 0, 0 };
+
+            const sy = -self.d[8]; // -r02 in column-major
+
+            if (sy <= 1.0 and sy >= -1.0) {
+                euler[0] = std.math.radiansToDegrees(std.math.atan2(self.d[9], self.d[10])); // X (pitch)
+                euler[1] = std.math.radiansToDegrees(std.math.asin(sy)); // Y (yaw)
+                euler[2] = std.math.radiansToDegrees(std.math.atan2(self.d[4], self.d[0])); // Z (roll)
+            } else {
+                // gimbal lock
+                euler[0] = std.math.radiansToDegrees(std.math.atan2(-self.d[6], self.d[5]));
+                euler[1] = if (sy < -1.0) -90.0 else 90.0;
+                euler[2] = 0.0;
+            }
+
+            euler[0] = @round(@abs(euler[0] - 360.0));
+            euler[1] = @round(@abs(euler[1] - 360.0));
+            euler[2] = @round(@abs(euler[2] - 360.0));
+
+            return euler;
+        }
+
+        pub fn vecScale(self: @This()) @Vector(3, T) {
+            return .{
+                std.math.sqrt(self.d[0] * self.d[0] + self.d[1] * self.d[1] + self.d[2] * self.d[2]),
+                std.math.sqrt(self.d[4] * self.d[4] + self.d[5] * self.d[5] + self.d[6] * self.d[6]),
+                std.math.sqrt(self.d[8] * self.d[8] + self.d[9] * self.d[9] + self.d[10] * self.d[10]),
+            };
         }
     };
 }

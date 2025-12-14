@@ -32,6 +32,14 @@ pub fn Transform3D(T: type) type {
                 .mul(.rotate(std.math.degreesToRadians(self.rotation[2]), .{ 0, 0, 1 }))
                 .mul(.scale(self.scale));
         }
+
+        pub fn fromMat4x4(m: Mat4x4(T)) @This() {
+            return .{
+                .position = m.vecPosition(),
+                .rotation = m.vecRotation(),
+                .scale = m.vecScale(),
+            };
+        }
     };
 }
 
@@ -47,5 +55,26 @@ pub fn Transform2D(T: type) type {
                 .mul(.rotate(std.math.degreesToRadians(self.rotation), .{ 1, 0, 1 }))
                 .mul(.scale(.{ self.scale[0], self.scale[1], 1 }));
         }
+
+        pub fn fromMat4x4(m: Mat4x4(T)) @This() {
+            const position = m.vecPosition();
+            const rotation = m.vecRotation();
+            const scale = m.vecScale();
+            return .{
+                .position = .{ position[0], position[1] },
+                .rotation = rotation[2],
+                .scale = .{ scale[0], scale[1] },
+            };
+        }
     };
+}
+
+test Transform3D {
+    var transform: Transform3D(f32) = .{ .position = .{ 10.0, 20.0, 30.0 }, .rotation = .{ 180.0, 360, 270 }, .scale = .{ 1.0, 2.0, 3.0 } };
+    try std.testing.expect(std.meta.eql(Transform3D(f32).fromMat4x4(transform.toMat4x4()), transform));
+}
+
+test Transform2D {
+    var transform: Transform2D(f32) = .{ .position = .{ 10.0, 20.0 }, .rotation = 270, .scale = .{ 1.0, 2.0 } };
+    try std.testing.expect(std.meta.eql(Transform2D(f32).fromMat4x4(transform.toMat4x4()), transform));
 }
