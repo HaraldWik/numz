@@ -113,16 +113,18 @@ pub inline fn forward(from: anytype, to: anytype) @TypeOf(from) {
     return normalize(to - from);
 }
 
-pub fn forwardFromEuler(rot: @Vector(3, f32)) @Vector(3, f32) {
-    const pitch = rot[0] * std.math.deg_per_rad;
-    const yaw = rot[1] * std.math.deg_per_rad;
+pub fn forwardFromEuler(rotation: anytype) @TypeOf(rotation) {
+    const len, _ = info(rotation);
+    if (len != 3) @compileError("forwardFromEuler() only supports vec3");
 
-    const cp = @cos(pitch);
-    const sp = @sin(pitch);
-    const cy = @cos(yaw);
-    const sy = @sin(yaw);
+    const pitch = std.math.degreesToRadians(rotation[0]); // rotation around X
+    const yaw = std.math.degreesToRadians(rotation[1]); // rotation around Y
 
-    return normalize(@Vector(3, f32){ cy * cp, sp, -sy * cp });
+    return .{
+        std.math.sin(yaw) * std.math.cos(pitch), // X
+        -std.math.sin(pitch), // Y
+        -std.math.cos(yaw) * std.math.cos(pitch), // Z
+    };
 }
 
 // test "swizzle functions" {
