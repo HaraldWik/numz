@@ -161,9 +161,9 @@ pub fn @"4x4"(T: type) type {
             const y_axis = crossProduct3D(z_axis, x_axis);
 
             return .new(.{
-                x_axis[0],                                                       y_axis[0],                                                       z_axis[0],                                                       0, 0,
-                x_axis[1],                                                       y_axis[1],                                                       z_axis[1],                                                       0, 0,
-                x_axis[2],                                                       y_axis[2],                                                       z_axis[2],                                                       0, 0,
+                x_axis[0],                                                       y_axis[0],                                                       z_axis[0],                                                       0,
+                x_axis[1],                                                       y_axis[1],                                                       z_axis[1],                                                       0,
+                x_axis[2],                                                       y_axis[2],                                                       z_axis[2],                                                       0,
                 -(x_axis[0] * eye[0] + x_axis[1] * eye[1] + x_axis[2] * eye[2]), -(y_axis[0] * eye[0] + y_axis[1] * eye[1] + y_axis[2] * eye[2]), -(z_axis[0] * eye[0] + z_axis[1] * eye[1] + z_axis[2] * eye[2]), 1,
             });
         }
