@@ -114,7 +114,7 @@ pub inline fn forward(from: anytype, to: anytype) @TypeOf(from) {
 }
 
 pub fn forwardFromEuler(rotation: anytype) @TypeOf(rotation) {
-    const len, _ = info(rotation);
+    const len, _ = info(@TypeOf(rotation));
     if (len != 3) @compileError("forwardFromEuler() only supports vec3");
 
     const pitch = std.math.degreesToRadians(rotation[0]); // rotation around X
