@@ -72,6 +72,20 @@ pub fn Hamiltonian(T: type) type {
 
             return .{ pitch, yaw, roll };
         }
+
+        pub fn angleAxis(angle: T, axis_in: @Vector(3, T)) @This() {
+            const axis = vec.normalize(axis_in);
+
+            const half = angle * @as(T, 0.5);
+            const s = @sin(half);
+
+            return .{
+                .w = @cos(half),
+                .x = axis[0] * s,
+                .y = axis[1] * s,
+                .z = axis[2] * s,
+            };
+        }
     };
 }
 
