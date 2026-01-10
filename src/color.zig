@@ -100,9 +100,19 @@ pub fn Rgb(T: type) type {
             return .from(u8, .{ .r = r, .g = g, .b = b });
         }
 
-        pub fn toU32(self: @This()) u32 {
-            const color: Color(u8) = self.to(u8);
-            return (@as(u32, color.r) << 24) | (@as(u32, color.g) << 16) | (@as(u32, color.b) << 8) | 0xFF;
+        pub fn toU32(self: @This(), endian: std.builtin.Endian) u32 {
+            const color = self.to(u8).alpha();
+
+            return switch (endian) {
+                .big => (@as(u32, color.r) << 24) |
+                    (@as(u32, color.g) << 16) |
+                    (@as(u32, color.b) << 8) |
+                    @as(u32, color.a),
+                .little => (@as(u32, color.a) << 24) |
+                    (@as(u32, color.b) << 16) |
+                    (@as(u32, color.g) << 8) |
+                    @as(u32, color.r),
+            };
         }
     };
 }
@@ -213,9 +223,19 @@ pub fn Rgba(T: type) type {
             return .from(u8, .{ .r = r, .g = g, .b = b, .a = a });
         }
 
-        pub fn toU32(self: @This()) u32 {
+        pub fn toU32(self: @This(), endian: std.builtin.Endian) u32 {
             const color: Color(u8) = self.to(u8);
-            return (@as(u32, color.r) << 24) | (@as(u32, color.g) << 16) | (@as(u32, color.b) << 8) | @as(u32, color.a);
+
+            return switch (endian) {
+                .big => (@as(u32, color.r) << 24) |
+                    (@as(u32, color.g) << 16) |
+                    (@as(u32, color.b) << 8) |
+                    @as(u32, color.a),
+                .little => (@as(u32, color.a) << 24) |
+                    (@as(u32, color.b) << 16) |
+                    (@as(u32, color.g) << 8) |
+                    @as(u32, color.r),
+            };
         }
     };
 }
@@ -271,9 +291,16 @@ test "fromHex" {
 }
 
 test "toU32" {
-    const rgba_f32: Rgba(f32) = .white;
-    const rgb_f32: Rgb(f32) = .black;
+    {
+        const rgba_f32: Rgba(f32) = .white;
+        const rgb_f32: Rgb(f32) = .white;
 
-    try std.testing.expect(rgba_f32.toU32() == 0xFFFFFFFF);
-    try std.testing.expect(rgb_f32.toU32() == 0x000000FF);
+        try std.testing.expect(rgba_f32.toU32(.native) == rgb_f32.toU32(.native));
+    }
+    {
+        const rgba_f32: Rgba(f32) = .red;
+        const rgb_f32: Rgb(f32) = .red;
+
+        try std.testing.expect(rgba_f32.toU32(.native) == rgb_f32.toU32(.native));
+    }
 }

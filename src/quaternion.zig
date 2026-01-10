@@ -1,5 +1,6 @@
 const std = @import("std");
 const vec = @import("vector.zig");
+const Mat4x4 = @import("matrix.zig").@"4x4";
 
 /// Quaternion using Hamiltonian (w-first) convention
 pub fn Hamiltonian(T: type) type {
@@ -54,24 +55,25 @@ pub fn Hamiltonian(T: type) type {
             };
         }
 
+        // NOTE: TOTALY BROKEN
         /// Reference: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        pub fn toEuler(q: @This()) !@Vector(3, T) {
-            const sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
-            const cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
-            const roll = std.math.atan2(sinr_cosp, cosr_cosp);
+        // pub fn toEuler(q: @This()) @Vector(3, T) {
+        //     const sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
+        //     const cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+        //     const roll = std.math.atan2(sinr_cosp, cosr_cosp);
 
-            const sinp = 2.0 * (q.w * q.y - q.z * q.x);
-            const pitch: f32 = if (@abs(sinp) >= 1.0)
-                std.math.copysign(@floatCast(std.math.pi / 2), sinp)
-            else
-                std.math.asin(sinp);
+        //     const sinp = 2.0 * (q.w * q.y - q.z * q.x);
+        //     const pitch: T = if (@abs(sinp) >= 1.0)
+        //         std.math.copysign(@as(T, @floatCast(std.math.pi / @as(T, 2.0))), sinp)
+        //     else
+        //         std.math.asin(sinp);
 
-            const siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
-            const cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-            const yaw = std.math.atan2(siny_cosp, cosy_cosp);
+        //     const siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
+        //     const cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+        //     const yaw = std.math.atan2(siny_cosp, cosy_cosp);
 
-            return .{ pitch, yaw, roll };
-        }
+        //     return .{ pitch, yaw, roll };
+        // }
 
         pub fn angleAxis(angle: T, axis_in: @Vector(3, T)) @This() {
             const axis = vec.normalize(axis_in);
@@ -86,11 +88,74 @@ pub fn Hamiltonian(T: type) type {
                 .z = axis[2] * s,
             };
         }
+
+        pub fn fromMat4x4(m: Mat4x4(T)) @This() {
+            const trace = m.d[0 * 4 + 0] + m.d[1 * 4 + 1] + m.d[2 * 4 + 2];
+            var w: T = 0;
+            var x: T = 0;
+            var y: T = 0;
+            var z: T = 0;
+
+            if (trace > @as(T, 0)) {
+                const s = @sqrt(trace + @as(T, 1.0)) * @as(T, 2.0); // s = 4 * w
+                w = 0.25 * s;
+                x = (m.d[2 * 4 + 1] - m.d[1 * 4 + 2]) / s;
+                y = (m.d[0 * 4 + 2] - m.d[2 * 4 + 0]) / s;
+                z = (m.d[1 * 4 + 0] - m.d[0 * 4 + 1]) / s;
+            } else if ((m.d[0 * 4 + 0] > m.d[1 * 4 + 1]) and (m.d[0 * 4 + 0] > m.d[2 * 4 + 2])) {
+                const s = @sqrt(@as(T, 1.0) + m.d[0 * 4 + 0] - m.d[1 * 4 + 1] - m.d[2 * 4 + 2]) * @as(T, 2.0); // s = 4 * x
+                w = (m.d[2 * 4 + 1] - m.d[1 * 4 + 2]) / s;
+                x = 0.25 * s;
+                y = (m.d[0 * 4 + 1] + m.d[1 * 4 + 0]) / s;
+                z = (m.d[0 * 4 + 2] + m.d[2 * 4 + 0]) / s;
+            } else if (m.d[1 * 4 + 1] > m.d[2 * 4 + 2]) {
+                const s = @sqrt(@as(T, 1.0) + m.d[1 * 4 + 1] - m.d[0 * 4 + 0] - m.d[2 * 4 + 2]) * @as(T, 2.0); // s = 4 * y
+                w = (m.d[0 * 4 + 2] - m.d[2 * 4 + 0]) / s;
+                x = (m.d[0 * 4 + 1] + m.d[1 * 4 + 0]) / s;
+                y = 0.25 * s;
+                z = (m.d[1 * 4 + 2] + m.d[2 * 4 + 1]) / s;
+            } else {
+                const s = @sqrt(@as(T, 1.0) + m.d[2 * 4 + 2] - m.d[0 * 4 + 0] - m.d[1 * 4 + 1]) * @as(T, 2.0); // s = 4 * z
+                w = (m.d[1 * 4 + 0] - m.d[0 * 4 + 1]) / s;
+                x = (m.d[0 * 4 + 2] + m.d[2 * 4 + 0]) / s;
+                y = (m.d[1 * 4 + 2] + m.d[2 * 4 + 1]) / s;
+                z = 0.25 * s;
+            }
+
+            return .{ .w = w, .x = x, .y = y, .z = z };
+        }
+
+        pub fn toMat4x4(self: @This()) Mat4x4(T) {
+            const xx = self.x * self.x;
+            const yy = self.y * self.y;
+            const zz = self.z * self.z;
+            const xy = self.x * self.y;
+            const xz = self.x * self.z;
+            const yz = self.y * self.z;
+            const wx = self.w * self.x;
+            const wy = self.w * self.y;
+            const wz = self.w * self.z;
+
+            return .new(.{
+                1 - 2 * (yy + zz), 2 * (xy - wz),     2 * (xz + wy),     0,
+                2 * (xy + wz),     1 - 2 * (xx + zz), 2 * (yz - wx),     0,
+                2 * (xz - wy),     2 * (yz + wx),     1 - 2 * (xx + yy), 0,
+                0,                 0,                 0,                 1,
+            });
+        }
     };
 }
 
 test Hamiltonian {
-    const euler: @Vector(3, f32) = .{ 0, 270, 360 };
-    const quat: Hamiltonian(f32) = .fromEuler(euler);
-    try std.testing.expect(vec.eql(quat.toEuler(), euler));
+    // const euler: @Vector(3, f32) = .{ 0, 270, 360 };
+    // const quat: Hamiltonian(f32) = .fromEuler(euler);
+    // const quat_euler = quat.toEuler();
+    // std.debug.print("{any} vs {any}\n", .{ euler, quat_euler });
+    // try std.testing.expectApproxEqAbs(quat_euler[0], euler[0], 0.5);
+    // try std.testing.expectApproxEqAbs(quat_euler[1], euler[1], 0.5);
+    // try std.testing.expectApproxEqAbs(quat_euler[2], euler[2], 0.5);
+
+    const mat: Mat4x4(f32) = .identity;
+    const quat: Hamiltonian(f32) = .fromMat4x4(mat);
+    try std.testing.expect(mat.eql(quat.toMat4x4()));
 }

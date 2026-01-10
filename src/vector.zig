@@ -1,6 +1,6 @@
 const std = @import("std");
 
-fn info(v: type) struct { usize, type } {
+pub fn info(v: type) struct { usize, type } {
     return switch (@typeInfo(v)) {
         .vector => |i| .{ i.len, i.child },
         .array => |i| .{ i.len, i.child },
@@ -8,43 +8,41 @@ fn info(v: type) struct { usize, type } {
     };
 }
 
-// pub fn xy(v: anytype) @"2"(@TypeOf(v[0])) {
-//     return .{ v[0], v[1] };
-// }
+pub const swizzle = struct {
+    pub fn xy(v: anytype) @Vector(2, @TypeOf(v[0])) {
+        return .{ v[0], v[1] };
+    }
 
-// pub fn yz(v: anytype) @"2"(@TypeOf(v[0])) {
-//     const len, _ = info(@TypeOf(v));
-//     if (len < 2) @compileError("Vector must have z");
-//     return .{ v[1], v[2] };
-// }
+    pub fn yz(v: anytype) @Vector(2, @TypeOf(v[0])) {
+        return .{ v[1], v[2] };
+    }
 
-// pub fn xz(v: anytype) @"2"(@TypeOf(v[0])) {
-//     const len, _ = info(@TypeOf(v));
-//     if (len < 2) @compileError("Vector must have z");
-//     return .{ v[0], v[2] };
-// }
+    pub fn xz(v: anytype) @Vector(2, @TypeOf(v[0])) {
+        return .{ v[0], v[2] };
+    }
 
-pub fn xyz(v: anytype) @TypeOf(v) {
-    const len, _ = info(@TypeOf(v));
+    pub fn xyz(v: anytype) @TypeOf(v) {
+        const len, _ = info(@TypeOf(v));
 
-    return switch (len) {
-        2 => .{ v[0], v[1], 0 },
-        3 => v,
-        4 => .{ v[0], v[1], v[2] },
-        else => unreachable,
-    };
-}
+        return switch (len) {
+            2 => .{ v[0], v[1], 0 },
+            3 => v,
+            4 => .{ v[0], v[1], v[2] },
+            else => unreachable,
+        };
+    }
 
-pub fn xyzw(v: anytype) @TypeOf(v) {
-    const len, _ = info(@TypeOf(v));
+    pub fn xyzw(v: anytype) @TypeOf(v) {
+        const len, _ = info(@TypeOf(v));
 
-    return switch (len) {
-        2 => .{ v[0], v[1], 0, 0 },
-        3 => .{ v[0], v[1], v[2], 0 },
-        4 => v,
-        else => unreachable,
-    };
-}
+        return switch (len) {
+            2 => .{ v[0], v[1], 0, 0 },
+            3 => .{ v[0], v[1], v[2], 0 },
+            4 => v,
+            else => unreachable,
+        };
+    }
+};
 
 pub fn eql(a: anytype, b: @TypeOf(a)) bool {
     const len, _ = info(@TypeOf(a));

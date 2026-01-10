@@ -1,5 +1,4 @@
 const std = @import("std");
-const Hamiltonian = @import("quaternion.zig").Hamiltonian;
 
 pub fn @"4x4"(T: type) type {
     return struct {
@@ -14,6 +13,10 @@ pub fn @"4x4"(T: type) type {
 
         pub fn new(data: [16]T) @This() {
             return .{ .d = data };
+        }
+
+        pub fn eql(a: @This(), b: @This()) bool {
+            return std.mem.eql(T, &a.d, &b.d);
         }
 
         pub fn mul(m1: @This(), m2: @This()) @This() {
@@ -80,7 +83,7 @@ pub fn @"4x4"(T: type) type {
         /// - `aspect`: Aspect ratio (width / height).
         /// - `near`: Distance to the near clipping plane (must be > 0).
         /// - `far`: Distance to the far clipping plane.
-        ///
+        ///mem
         /// Produces a 4×4 matrix suitable for projecting 3D coordinates into
         /// normalized device coordinates (NDC) in Vulkan-style clip space,
         /// where Z ranges from 0 to 1 and Y is up.
@@ -213,71 +216,6 @@ pub fn @"4x4"(T: type) type {
                 result_data[i] = inv[i] * inv_det;
             }
             return .new(result_data);
-        }
-
-        pub fn fromQuaternion(q: @Vector(4, T)) @This() {
-            var m: @This() = .identity;
-
-            // Pre-calculate terms for efficiency
-            const x2 = q[0] * q[0];
-            const y2 = q[1] * q[1];
-            const z2 = q[2] * q[2];
-            const xy = q[0] * q[1];
-            const xz = q[0] * q[2];
-            const yz = q[1] * q[2];
-            const wx = q[3] * q[0];
-            const wy = q[3] * q[1];
-            const wz = q[3] * q[2];
-
-            // Column 0
-            m.d[0] = 1.0 - 2.0 * (y2 + z2); // m00
-            m.d[1] = 2.0 * (xy + wz); // m10
-            m.d[2] = 2.0 * (xy - wy); // m20
-
-            // Column 1
-            m.d[4] = 2.0 * (xy - wz); // m01
-            m.d[5] = 1.0 - 2.0 * (x2 + z2); // m11
-            m.d[6] = 2.0 * (yz + wx); // m21
-
-            m.d[8] = 2.0 * (xz + wy); // m02
-            m.d[9] = 2.0 * (yz - wx); // m12
-            m.d[10] = 1.0 - 2.0 * (x2 + y2); // m22
-
-            return m;
-        }
-
-        pub fn toQuaternion(m: @This()) Hamiltonian(T) {
-            var q: @Vector(4, T) = undefined;
-
-            const trace = m.d[0] + m.d[5] + m.d[10]; // sum of diagonal elements
-
-            if (trace > 0) {
-                const s = @sqrt(trace + 1.0) * 2.0;
-                q[3] = 0.25 * s; // w
-                q[0] = (m.d[9] - m.d[6]) / s; // x
-                q[1] = (m.d[2] - m.d[8]) / s; // y
-                q[2] = (m.d[4] - m.d[1]) / s; // z
-            } else if ((m.d[0] > m.d[5]) and (m.d[0] > m.d[10])) {
-                const s = @sqrt(1.0 + m.d[0] - m.d[5] - m.d[10]) * 2.0;
-                q[3] = (m.d[9] - m.d[6]) / s; // w
-                q[0] = 0.25 * s; // x
-                q[1] = (m.d[1] + m.d[4]) / s; // y
-                q[2] = (m.d[2] + m.d[8]) / s; // z
-            } else if (m.d[5] > m.d[10]) {
-                const s = @sqrt(1.0 + m.d[5] - m.d[0] - m.d[10]) * 2.0;
-                q[3] = (m.d[2] - m.d[8]) / s; // w
-                q[0] = (m.d[1] + m.d[4]) / s; // x
-                q[1] = 0.25 * s; // y
-                q[2] = (m.d[6] + m.d[9]) / s; // z
-            } else {
-                const s = @sqrt(1.0 + m.d[10] - m.d[0] - m.d[5]) * 2.0;
-                q[3] = (m.d[4] - m.d[1]) / s; // w
-                q[0] = (m.d[2] + m.d[8]) / s; // x
-                q[1] = (m.d[6] + m.d[9]) / s; // y
-                q[2] = 0.25 * s; // z
-            }
-
-            return .fromVec(q);
         }
 
         pub fn vecPosition(self: @This()) @Vector(3, T) {
