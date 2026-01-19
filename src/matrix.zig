@@ -253,6 +253,15 @@ pub fn @"4x4"(T: type) type {
                 std.math.sqrt(self.d[8] * self.d[8] + self.d[9] * self.d[9] + self.d[10] * self.d[10]),
             };
         }
+
+        pub fn mulVec4(m: @This(), v: @Vector(4, T)) @Vector(4, T) {
+            return .{
+                m.d[0] * v[0] + m.d[4] * v[1] + m.d[8] * v[2] + m.d[12] * v[3],
+                m.d[1] * v[0] + m.d[5] * v[1] + m.d[9] * v[2] + m.d[13] * v[3],
+                m.d[2] * v[0] + m.d[6] * v[1] + m.d[10] * v[2] + m.d[14] * v[3],
+                m.d[3] * v[0] + m.d[7] * v[1] + m.d[11] * v[2] + m.d[15] * v[3],
+            };
+        }
     };
 }
 
