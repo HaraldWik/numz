@@ -55,25 +55,26 @@ pub fn Hamiltonian(T: type) type {
             };
         }
 
-        // NOTE: TOTALY BROKEN
-        /// Reference: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        // pub fn toEuler(q: @This()) @Vector(3, T) {
-        //     const sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
-        //     const cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
-        //     const roll = std.math.atan2(sinr_cosp, cosr_cosp);
+        pub fn toEuler(q: @This()) @Vector(3, T) {
+            // Pitch (X axis)
+            const sinp = 2.0 * (q.w * q.x - q.z * q.y);
+            const pitch: T = if (@abs(sinp) >= 1.0)
+                std.math.copysign(@as(T, std.math.pi / 2.0), sinp)
+            else
+                std.math.asin(sinp);
 
-        //     const sinp = 2.0 * (q.w * q.y - q.z * q.x);
-        //     const pitch: T = if (@abs(sinp) >= 1.0)
-        //         std.math.copysign(@as(T, @floatCast(std.math.pi / @as(T, 2.0))), sinp)
-        //     else
-        //         std.math.asin(sinp);
+            // Yaw (Y axis)
+            const siny = 2.0 * (q.w * q.y + q.x * q.z);
+            const cosy = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+            const yaw = std.math.atan2(siny, cosy);
 
-        //     const siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
-        //     const cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-        //     const yaw = std.math.atan2(siny_cosp, cosy_cosp);
+            // Roll (Z axis)
+            const sinr = 2.0 * (q.w * q.z + q.x * q.y);
+            const cosr = 1.0 - 2.0 * (q.z * q.z + q.x * q.x);
+            const roll = std.math.atan2(sinr, cosr);
 
-        //     return .{ pitch, yaw, roll };
-        // }
+            return .{ pitch, yaw, roll };
+        }
 
         pub fn angleAxis(angle: T, axis_in: @Vector(3, T)) @This() {
             const axis = vec.normalize(axis_in);
