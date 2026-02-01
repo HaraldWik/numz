@@ -36,7 +36,12 @@ pub fn Hamiltonian(T: type) type {
         pub fn toVec(self: @This()) @Vector(4, T) {
             return .{ self.w, self.x, self.y, self.z };
         }
-
+        pub fn fromVecReversed(v: @Vector(4, T)) @This() {
+            return .{ .w = v[0], .x = v[1], .y = v[2], .z = v[3] };
+        }
+        pub fn toVecReversed(self: @This()) @Vector(4, T) {
+            return .{ self.x, self.y, self.z, self.w };
+        }
         pub fn fromEuler(euler: @Vector(3, T)) @This() {
             const pitch, const yaw, const roll = euler;
 

@@ -221,7 +221,9 @@ pub fn @"4x4"(T: type) type {
         pub fn vecPosition(self: @This()) @Vector(3, T) {
             return .{ self.d[12], self.d[13], self.d[14] };
         }
-
+        pub fn vec4Position(self: @This()) @Vector(4, T) {
+            return .{ self.d[12], self.d[13], self.d[14], self.d[15] };
+        }
         // TODO: Clean up this garbage
         pub fn vecRotation(self: @This()) @Vector(3, T) {
             var euler: @Vector(3, T) = .{ 0, 0, 0 };
