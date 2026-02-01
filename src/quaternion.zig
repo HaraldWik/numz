@@ -49,9 +49,9 @@ pub fn Hamiltonian(T: type) type {
 
             return .{
                 .w = cr * cp * cy + sr * sp * sy,
-                .x = sr * cp * cy - cr * sp * sy,
-                .y = cr * sp * cy + sr * cp * sy,
-                .z = cr * cp * sy - sr * sp * cy,
+                .z = sr * cp * cy - cr * sp * sy,
+                .x = cr * sp * cy + sr * cp * sy,
+                .y = cr * cp * sy - sr * sp * cy,
             };
         }
 
