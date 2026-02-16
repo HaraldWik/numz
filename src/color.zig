@@ -2,7 +2,7 @@ const std = @import("std");
 
 pub fn Rgb(T: type) type {
     const Color = Rgb;
-    return struct {
+    return extern struct {
         r: T,
         g: T,
         b: T,
@@ -119,7 +119,7 @@ pub fn Rgb(T: type) type {
 
 pub fn Rgba(T: type) type {
     const Color = Rgba;
-    return struct {
+    return extern struct {
         r: T,
         g: T,
         b: T,
