@@ -273,5 +273,5 @@ test @"4x4" {
     _ = @"4x4"(f32).translate(.{ 1, 2, 3 });
     _ = @"4x4"(f32).scale(.{ 1, 2, 3 });
     _ = @"4x4"(f32).rotate(std.math.degreesToRadians(90), .{ 1, 2, 3 });
-    _ = @"4x4"(f32).identity.toQuaternion();
+    _ = @"4x4"(f32).identity.inverse();
 }

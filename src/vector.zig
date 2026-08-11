@@ -84,6 +84,25 @@ pub fn normalize(v: anytype) @TypeOf(v) {
     return scale(v, 1 / len);
 }
 
+pub fn randomUnitVector(v: type, random: std.Random) v {
+    const len, const Element = info(v);
+    var unit_vec: v = std.mem.zeroes(v);
+    while (true) {
+        var length_squared: Element = 0;
+        const two: Element = 2;
+        const one: Element = 1;
+        inline for (0..len) |i| {
+            unit_vec[i] = random.float(Element) * two - one;
+            length_squared += unit_vec[i] * unit_vec[i];
+        }
+        // Reject vectors outside the unit sphere and vectors too close to zero.
+        if (length_squared > std.math.floatEps(Element) and length_squared <= 1.0) {
+            const inverse_length = 1.0 / @sqrt(length_squared);
+            return scale(unit_vec, inverse_length);
+        }
+    }
+}
+
 pub inline fn negate(v: anytype) @TypeOf(v) {
     var ret: @TypeOf(v) = undefined;
     const len, _ = info(@TypeOf(v));
@@ -115,13 +134,10 @@ pub fn forwardFromEuler(rotation: anytype) @TypeOf(rotation) {
     const len, _ = info(@TypeOf(rotation));
     if (len != 3) @compileError("forwardFromEuler() only supports vec3");
 
-    const pitch = std.math.degreesToRadians(rotation[0]); // rotation around X
-    const yaw = std.math.degreesToRadians(rotation[1]); // rotation around Y
-
     return .{
-        std.math.sin(yaw) * std.math.cos(pitch), // X
-        -std.math.sin(pitch), // Y
-        -std.math.cos(yaw) * std.math.cos(pitch), // Z
+        std.math.sin(rotation[1]) * std.math.cos(rotation[0]), // X
+        std.math.sin(rotation[0]), // Y
+        -std.math.cos(rotation[1]) * std.math.cos(rotation[0]), // Z
     };
 }
 
@@ -244,4 +260,37 @@ test "forward" {
 
     const dir = forward(from, to);
     try std.testing.expect(eql(dir, .{ 0, 0, 1 }));
+}
+
+test "randomUnitVector returns normalized vectors" {
+    var prng = std.Random.DefaultPrng.init(12345);
+    const random = prng.random();
+
+    for (0..10_000) |_| {
+        const v = randomUnitVector(@Vector(3, f32), random);
+
+        const len_sq =
+            v[0] * v[0] +
+            v[1] * v[1] +
+            v[2] * v[2];
+
+        try std.testing.expectApproxEqAbs(
+            @as(f32, 1.0),
+            len_sq,
+            0.0001,
+        );
+    }
+}
+
+test "randomUnitVector never produces NaN" {
+    var prng = std.Random.DefaultPrng.init(12345);
+    const random = prng.random();
+
+    for (0..10000) |_| {
+        const v = randomUnitVector(@Vector(3, f32), random);
+
+        inline for (0..3) |i| {
+            try std.testing.expect(!std.math.isNan(v[i]));
+        }
+    }
 }
